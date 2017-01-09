@@ -1,0 +1,6 @@
+*.o
+.flavor
+.objs
+ayahesa.so
+assets.h
+cert
