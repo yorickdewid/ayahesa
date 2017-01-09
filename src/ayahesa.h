@@ -11,6 +11,8 @@
 #ifndef _AYAHESA_H_
 #define _AYAHESA_H_
 
+#include "compat.h"
+
 #include <kore/kore.h>
 #include <kore/http.h>
 

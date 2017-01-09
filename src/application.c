@@ -8,10 +8,10 @@
  * permission of the author.
  */
 
+#include "ayahesa.h"
+
 #include <assert.h>
 #include <time.h>
-
-#include "ayahesa.h"
 
 #define TREE_CONFIG  0
 #define TREE_CACHE  1
@@ -217,8 +217,8 @@ cache_put_str(app_t *app, const char *key, const char *value)
 printf("i:%d\n", idx);
 
     config_root->child.ptr[idx] = (app_t *)calloc(1, sizeof(app_t));
-    config_root->child.ptr[idx]->key = strdup(key);
-    config_root->child.ptr[idx]->value.str = strdup(value);
+    config_root->child.ptr[idx]->key = ayahesa_strdup(key);
+    config_root->child.ptr[idx]->value.str = ayahesa_strdup(value);
     config_root->child.ptr[idx]->type = T_STRING; 
 }
 
@@ -242,7 +242,7 @@ cache_put_int(app_t *app, const char *key, int value)
 printf("i:%d\n", idx);
 
     config_root->child.ptr[idx] = (app_t *)calloc(1, sizeof(app_t));
-    config_root->child.ptr[idx]->key = strdup(key);
+    config_root->child.ptr[idx]->key = ayahesa_strdup(key);
     config_root->child.ptr[idx]->value.i = value;
     config_root->child.ptr[idx]->type = T_INT; 
 }

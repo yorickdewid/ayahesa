@@ -1,3 +1,5 @@
+#define _POSIX_SOURCE //TODO: for the moment
+
 #include <time.h>
 #include <locale.h>
 #include <xlocale.h>
@@ -101,8 +103,7 @@ jrpc_endpoint(struct http_request *http_req)
 		time_t		time_value;
 		struct tm	time_info;
 		char		timestamp[33];
-		struct tm	*(*gettm)(const time_t *, struct tm *) =
-				    localtime_r;
+		struct tm	*(*gettm)(const time_t *, struct tm *) = localtime_r;
 		
 		if (YAJL_IS_OBJECT(req.params)) {
 			const char	*path[] = {"local", NULL};
@@ -126,8 +127,7 @@ jrpc_endpoint(struct http_request *http_req)
 			    "Failed to get date time info");
 		
 		memset(timestamp, 0, sizeof(timestamp));
-		if (strftime(timestamp, sizeof(timestamp) - 1, "%c",
-		    &time_info) == 0)
+		if (strftime(timestamp, sizeof(timestamp) - 1, "%c", &time_info) == 0)
 			return jsonrpc_error(&req, -4,
 			    "Failed to get printable date time");
 		
