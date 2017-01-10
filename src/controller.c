@@ -21,18 +21,11 @@ controller(foo)
     if (request->query_string)
         puts(request->query_string);
 
-    char *cookie = NULL;
-    http_request_header(request, "cookie", &cookie);
-
-    //
-    if (cookie) {
-        puts(cookie);
-    }
-
-    // puts(app_instance_id());
+    const char *cookie = get_cookie(request, "authsess");
 
 	http_response_header(request, "content-type", "text/html");
-	//http_response_header(request, "set-cookie", "_umaysess=3745693");
+    if (cookie == NULL)
+	    http_response_header(request, "set-cookie", "authsess=dyfgyasdfwegfgwegrfw4i");
 	http_response(request, 200, "x", 1);
     return_ok();
 }

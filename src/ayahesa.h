@@ -67,6 +67,7 @@ extern app_t *root_app;
  * Prototypes
  */
 char *generate_instance_id(void);
+const char *get_cookie(struct http_request *request, const char *name);
 
 void application_create(app_t **app);
 void application_config(app_t *app, const char *configfile);

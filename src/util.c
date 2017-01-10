@@ -34,3 +34,33 @@ generate_instance_id(void)
 
     return str;
 }
+
+const char *
+get_cookie(struct http_request *request, const char *name)
+{
+    char *cookiejar = NULL;
+    http_request_header(request, "cookie", &cookiejar);
+    if (cookiejar == NULL)
+        return NULL;
+
+    char *pch;
+    char iskey = 1;
+    char isfound = 0;
+
+    pch = strtok(cookiejar, " ;=");
+    while (pch != NULL) {
+        if (iskey) {
+            if (!strcmp(pch, name))
+                isfound = 1;
+            iskey = 0;
+        } else {
+            if (isfound)
+                return pch;
+            iskey = 1;
+        }
+
+        pch = strtok(NULL, " ;=");
+    }
+
+    return NULL;
+}
