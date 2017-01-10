@@ -18,7 +18,7 @@ generate_instance_id(void)
     static const char ar[] = "abcdefghijklmnopqrstuvwxyz";
     unsigned int rnd;
 
-    char *str = (char *)malloc(10);
+    char *str = (char *)kore_malloc(10);
 
     str[0] = ar[rand() % strlen(ar)];
     str[1] = ar[rand() % strlen(ar)];

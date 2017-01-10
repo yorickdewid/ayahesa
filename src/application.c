@@ -24,10 +24,17 @@ enum {
 static void
 tree_new_root(struct app_tree *node)
 {
+    unsigned int i;
+
     assert(node != NULL);
 
     node->child.alloc_cnt = 10;
-    node->child.ptr = (struct app_tree **)calloc(node->child.alloc_cnt, sizeof(struct app_tree *));
+    node->child.ptr = (struct app_tree **)kore_malloc(node->child.alloc_cnt * sizeof(struct app_tree *));
+
+    /* Nullify new pointers */
+    for (i=0; i<node->child.alloc_cnt; ++i)
+        node->child.ptr[i] = NULL;
+
 }
 
 static int
@@ -58,7 +65,7 @@ tree_expand(struct app_tree *node)
     assert(node != NULL);
 
     node->child.alloc_cnt += 10;
-    node->child.ptr = (struct app_tree **)realloc(node->child.ptr, node->child.alloc_cnt * sizeof(struct app_tree *));
+    node->child.ptr = (struct app_tree **)kore_realloc(node->child.ptr, node->child.alloc_cnt * sizeof(struct app_tree *));
     
     /* Nullify new pointers */
     for (i=start_idx; i<node->child.alloc_cnt; ++i)
@@ -77,17 +84,17 @@ tree_free(struct app_tree *node)
         return;
 
     if (node->key != NULL) {
-        free((void *)node->key);
+        kore_free((void *)node->key);
         node->key = NULL;
     }
 
     switch (node->type) {
         case T_STRING:
-            free((void *)node->value.str);
+            kore_free((void *)node->value.str);
             node->value.str = NULL;
             break;
         case T_POINTER:
-            free(node->value.ptr);
+            kore_free(node->value.ptr);
             node->value.ptr = NULL;
             break;
         case T_INT:
@@ -119,16 +126,25 @@ application_create(app_t **app)
     srand(time(NULL));
 
     /* Setup application root tree */
-    app_t *root = (app_t *)calloc(1, sizeof(app_t));
-    root->value.str =  generate_instance_id();
+    app_t *root = (app_t *)kore_malloc(sizeof(app_t));
+    root->value.str = generate_instance_id();
+    root->type = T_STRING;
+    root->flags = 0;
+    root->key = NULL;
     tree_new_root(root);
 
     /* Config tree */
-    root->child.ptr[TREE_CONFIG] = (app_t *)calloc(1, sizeof(app_t));
+    root->child.ptr[TREE_CONFIG] = (app_t *)kore_malloc(sizeof(app_t));
+    root->child.ptr[TREE_CONFIG]->flags = T_FLAG_READONLY;
+    root->child.ptr[TREE_CONFIG]->type = T_NULL;
+    root->child.ptr[TREE_CONFIG]->key = NULL;
     tree_new_root(root->child.ptr[TREE_CONFIG]);
 
     /* Cache tree */
-    root->child.ptr[TREE_CACHE] = (app_t *)calloc(1, sizeof(app_t));
+    root->child.ptr[TREE_CACHE] = (app_t *)kore_malloc(sizeof(app_t));
+    root->child.ptr[TREE_CACHE]->flags = 0;
+    root->child.ptr[TREE_CACHE]->type = T_NULL;
+    root->child.ptr[TREE_CACHE]->key = NULL;
     tree_new_root(root->child.ptr[TREE_CACHE]);
 
     kore_log(LOG_NOTICE, "application instance %s", root->value.str);
@@ -172,7 +188,7 @@ application_release(app_t *app)
 
     tree_free(app);
 
-    free((void *)app);
+    kore_free((void *)app);
 }
 
 /*
@@ -191,7 +207,7 @@ cache_remove(app_t *app, const char *key)
         if (config_root->child.ptr[i] != NULL && !strcmp(config_root->child.ptr[i]->key, key)) {
             tree_free(config_root->child.ptr[i]);
 
-            free((void *)config_root->child.ptr[i]);
+            kore_free((void *)config_root->child.ptr[i]);
             config_root->child.ptr[i] = NULL;
         }
     }
@@ -216,9 +232,9 @@ cache_put_str(app_t *app, const char *key, const char *value)
         idx = tree_expand(config_root);
 printf("i:%d\n", idx);
 
-    config_root->child.ptr[idx] = (app_t *)calloc(1, sizeof(app_t));
-    config_root->child.ptr[idx]->key = ayahesa_strdup(key);
-    config_root->child.ptr[idx]->value.str = ayahesa_strdup(value);
+    config_root->child.ptr[idx] = (app_t *)kore_malloc(sizeof(app_t));
+    config_root->child.ptr[idx]->key = kore_strdup(key);
+    config_root->child.ptr[idx]->value.str = kore_strdup(value);
     config_root->child.ptr[idx]->type = T_STRING; 
 }
 
@@ -241,8 +257,8 @@ cache_put_int(app_t *app, const char *key, int value)
         idx = tree_expand(config_root);
 printf("i:%d\n", idx);
 
-    config_root->child.ptr[idx] = (app_t *)calloc(1, sizeof(app_t));
-    config_root->child.ptr[idx]->key = ayahesa_strdup(key);
+    config_root->child.ptr[idx] = (app_t *)kore_malloc(sizeof(app_t));
+    config_root->child.ptr[idx]->key = kore_strdup(key);
     config_root->child.ptr[idx]->value.i = value;
     config_root->child.ptr[idx]->type = T_INT; 
 }

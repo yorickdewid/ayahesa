@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef NEED_STRDUP
+
 char *
 ayahesa_strdup(const char *src) {
     char *dest = (char *)malloc(strlen(src) + 1);
@@ -26,3 +28,5 @@ ayahesa_strdup(const char *src) {
     strcpy(dest, src);
     return dest;
 }
+
+#endif // NEED_STRDUP

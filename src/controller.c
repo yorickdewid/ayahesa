@@ -24,10 +24,12 @@ controller(foo)
     char *cookie = NULL;
     http_request_header(request, "cookie", &cookie);
 
-    if (cookie)
+    //
+    if (cookie) {
         puts(cookie);
+    }
 
-    puts(app_instance_id());
+    // puts(app_instance_id());
 
 	http_response_header(request, "content-type", "text/html");
 	//http_response_header(request, "set-cookie", "_umaysess=3745693");

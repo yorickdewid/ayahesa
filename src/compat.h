@@ -11,6 +11,10 @@
 #ifndef _AYAHESA_COMPAT_H_
 #define _AYAHESA_COMPAT_H_
 
+#ifdef NEED_STRDUP
+
 char *ayahesa_strdup(const char *src);
+
+#endif // NEED_STRDUP
 
 #endif // _AYAHESA_COMPAT_H_

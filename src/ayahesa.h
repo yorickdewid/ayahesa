@@ -12,67 +12,29 @@
 #define _AYAHESA_H_
 
 #include "compat.h"
+#include "defs.h"
 
 #include <kore/kore.h>
 #include <kore/http.h>
 
 #define VERSION "Ayahesa/0.2"
-#define DEBUG 1
 #define CONFIG  "conf/framework.ini"
+#define TESTCODE
 
-#define return_ok() return (KORE_RESULT_OK); 
+#ifdef DEBUG
+# define TESTCODE
+#endif
 
-#define route(r) \
-    int app_##r(struct http_request *); \
-    int app_##r(struct http_request *request)
-
-#define redirect(l) \
-    http_response_header(request, "location", l); \
-	http_response(request, 302, NULL, 0); \
-    return (KORE_RESULT_OK);
-
-#define write_plain(t) \
-	http_response_header(request, "content-type", "text/plain"); \
-	http_response(request, 200, t, strlen(t)); \
-	return (KORE_RESULT_OK);
-
-#define write_html(t) \
-	http_response_header(request, "content-type", "text/html"); \
-	http_response(request, 200, t, strlen(t)); \
-	return (KORE_RESULT_OK);
-
-#define http_get() \
-	if (request->method != HTTP_METHOD_GET) { \
-		http_response_header(request, "allow", "get"); \
-		http_response(request, 405, NULL, 0); \
-		return (KORE_RESULT_OK); \
-	}
-
-#define http_post() \
-	if (request->method != HTTP_METHOD_POST) { \
-		http_response_header(request, "allow", "post"); \
-		http_response(request, 405, NULL, 0); \
-		return (KORE_RESULT_OK); \
-	}
-
-/*
- * Controller definitions
- */
-
-#define invoke(c) \
-    extern int controller_##c(struct http_request *request, void *data); \
-    controller_##c(request, NULL);
-
-#define invoke_data(c,d) \
-    extern int controller_##c(struct http_request *request, void *data); \
-    controller_##c(request, d);
-
-#define controller(c) \
-    int controller_##c(struct http_request *, void *); \
-    int controller_##c(struct http_request *request, void *data)
+#define T_FLAG_READONLY 0x1
 
 /*
  * Application internal structure
+ *
+ * type:    Datatype
+ * flags:   Additional tree options
+ * key:     Key-value identifier
+ * value:   Data object
+ * child:   Child trees
  */
 struct app_tree {
     enum {
@@ -82,6 +44,7 @@ struct app_tree {
         T_STRING,
         T_POINTER,
     } type;
+    char flags;
     char *key;
     union {
         int i;
@@ -99,9 +62,6 @@ typedef struct app_tree app_t;
 
 /* Core root definition */
 extern app_t *root_app;
-
-#define app_instance_id() \
-    root_app->value.str
 
 /*
  * Prototypes
