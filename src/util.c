@@ -36,7 +36,7 @@ generate_instance_id(void)
 }
 
 const char *
-get_cookie(struct http_request *request, const char *name)
+http_get_cookie(struct http_request *request, const char *name)
 {
     char *cookiejar = NULL;
     http_request_header(request, "cookie", &cookiejar);

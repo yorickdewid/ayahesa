@@ -14,6 +14,41 @@
 #define TREE_CONFIG  0
 #define TREE_CACHE  1
 
+/*
+ * Config operations
+ */
+
+#define config_put_int(a,k,v) \
+    tree_put_int(a->child.ptr[TREE_CONFIG],k,v)
+
+#define config_put_float(a,k,v) \
+    tree_put_float(a->child.ptr[TREE_CONFIG],k,v)
+
+#define config_put_str(a,k,v) \
+    tree_put_str(a->child.ptr[TREE_CONFIG],k,v)
+
+#define config_put_ptr(a,k,v) \
+    tree_put_ptr(a->child.ptr[TREE_CONFIG],k,v)
+
+/*
+ * Cache operations
+ */
+
+#define cache_put_int(a,k,v) \
+    tree_put_int(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_put_float(a,k,v) \
+    tree_put_float(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_put_str(a,k,v) \
+    tree_put_str(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_put_ptr(a,k,v) \
+    tree_put_ptr(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_remove(a,k) \
+    tree_remove(a->child.ptr[TREE_CACHE], k);
+
 enum {
     ENOROOT = -1,
     EISFULL = -2,
@@ -24,6 +59,11 @@ int tree_get_new_index(struct app_tree *node);
 int tree_expand(struct app_tree *node);
 void tree_free(struct app_tree *node);
 
-struct app_tree *tree_store(struct app_tree *tree);
+void tree_remove(struct app_tree *tree, const char *key);
+
+void tree_put_int(struct app_tree *tree, const char *key, int value);
+void tree_put_float(struct app_tree *tree, const char *key, float value);
+void tree_put_str(struct app_tree *tree, const char *key, const char *value);
+void tree_put_ptr(struct app_tree *tree, const char *key, void *value);
 
 #endif // _AYAHESA_TREE_H_

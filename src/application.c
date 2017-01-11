@@ -60,10 +60,9 @@ application_config(app_t *app, const char *configfile)
 {
     assert(app != NULL);
 
-    /*config_put_str(app, "dbname", "ayahesa");
-    config_put_str(app, "dbuser", "user");
-    config_put_str(app, "dbpasswd", "ABC@123");
-    config_put_str(app, "dbhost", "localhost");*/
+    /* Default config */
+    config_put_int(app, "debug", 0);
+    config_put_str(app, "env", "prod");
 
     cache_put_str(app, "appname", "Ayahesa");//0
     cache_put_str(app, "appkey1", "ABC@123");
@@ -95,113 +94,3 @@ application_release(app_t *app)
 
     kore_free((void *)app);
 }
-
-/*
- * Remove item from cache tree
- */
-void
-cache_remove(app_t *app, const char *key)
-{
-    unsigned int i;
-
-    assert(app != NULL && app->child.ptr[TREE_CACHE]);
-
-    struct app_tree *cache_root = app->child.ptr[TREE_CACHE]; 
-
-    for (i=0; i<cache_root->child.alloc_cnt; ++i) {
-        if (cache_root->child.ptr[i] != NULL && !strcmp(cache_root->child.ptr[i]->key, key)) {
-            tree_free(cache_root->child.ptr[i]);
-
-            kore_free((void *)cache_root->child.ptr[i]);
-            cache_root->child.ptr[i] = NULL;
-        }
-    }
-}
-
-#if 0
-/*
- * Put string in config tree
- */
-void
-config_put_str(app_t *app, const char *key, const char *value)
-{
-    assert(app != NULL && app->child.ptr[TREE_CONFIG]);
-
-    struct app_tree *config_root = app->child.ptr[TREE_CONFIG]; 
-
-    /* Retrieve index */
-    int idx = tree_get_new_index(config_root);
-    if (idx == ENOROOT)
-        abort();
-    
-    if (idx == EISFULL)
-        idx = tree_expand(config_root);
-printf("i:%d\n", idx);
-
-    config_root->child.ptr[idx] = (app_t *)kore_malloc(sizeof(app_t));
-    config_root->child.ptr[idx]->key = kore_strdup(key);
-    config_root->child.ptr[idx]->value.str = kore_strdup(value);
-    config_root->child.ptr[idx]->type = T_STRING; 
-}
-#endif
-
-/*
- * Put integer in cache tree
- */
-void
-cache_put_int(app_t *app, const char *key, int value)
-{
-    assert(app->child.ptr[TREE_CACHE]);
-
-    struct app_tree *cache_item = tree_store(app->child.ptr[TREE_CACHE]);
-
-    cache_item->key = kore_strdup(key);
-    cache_item->value.i = value;
-    cache_item->type = T_INT;
-}
-
-/*
- * Put float in cache tree
- */
-void
-cache_put_float(app_t *app, const char *key, float value)
-{
-    assert(app->child.ptr[TREE_CACHE]);
-
-    struct app_tree *cache_item = tree_store(app->child.ptr[TREE_CACHE]);
-
-    cache_item->key = kore_strdup(key);
-    cache_item->value.f = value;
-    cache_item->type = T_FLOAT;
-}
-
-/*
- * Put string in cache tree
- */
-void
-cache_put_str(app_t *app, const char *key, const char *value)
-{
-    assert(app->child.ptr[TREE_CACHE]);
-
-    struct app_tree *cache_item = tree_store(app->child.ptr[TREE_CACHE]);
-
-    cache_item->key = kore_strdup(key);
-    cache_item->value.str = kore_strdup(value);
-    cache_item->type = T_STRING; 
-}
-
-/*
- * Put user pointer in cache tree
- */
-void
-cache_put_ptr(app_t *app, const char *key, void *value)
-{
-    assert(app->child.ptr[TREE_CACHE]);
-
-    struct app_tree *cache_item = tree_store(app->child.ptr[TREE_CACHE]);
-
-    cache_item->key = kore_strdup(key);
-    cache_item->value.str = value;
-    cache_item->type = T_POINTER; 
-}
-

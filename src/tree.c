@@ -106,10 +106,34 @@ tree_free(struct app_tree *node)
 }
 
 /*
- * Put item in tree
+ * Remove item from tree
  */
-struct app_tree * 
-tree_store(struct app_tree *tree)
+void
+tree_remove(struct app_tree *tree, const char *key)
+{
+    unsigned int i;
+
+    assert(tree != NULL);
+
+    if (tree->flags & T_FLAG_READONLY) {
+        return;
+    }
+ 
+    for (i=0; i<tree->child.alloc_cnt; ++i) {
+        if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
+            tree_free(tree->child.ptr[i]);
+
+            kore_free((void *)tree->child.ptr[i]);
+            tree->child.ptr[i] = NULL;
+        }
+    }
+}
+
+/*
+ * Allocate new item in tree
+ */
+static struct app_tree *
+tree_new_item(struct app_tree *tree)
 {
     assert(tree != NULL);
 
@@ -126,4 +150,64 @@ printf("i:%d\n", idx);//TODO: remove
     tree->child.ptr[idx]->key = NULL;
     tree->child.ptr[idx]->type = T_NULL;
     return tree->child.ptr[idx];
+}
+
+/*
+ * Put integer in cache tree
+ */
+void
+tree_put_int(struct app_tree *tree, const char *key, int value)
+{
+    assert(tree != NULL);
+
+    struct app_tree *item = tree_new_item(tree);
+
+    item->key = kore_strdup(key);
+    item->value.i = value;
+    item->type = T_INT;
+}
+
+/*
+ * Put float in cache tree
+ */
+void
+tree_put_float(struct app_tree *tree, const char *key, float value)
+{
+    assert(tree != NULL);
+
+    struct app_tree *item = tree_new_item(tree);
+
+    item->key = kore_strdup(key);
+    item->value.f = value;
+    item->type = T_FLOAT;
+}
+
+/*
+ * Put string in cache tree
+ */
+void
+tree_put_str(struct app_tree *tree, const char *key, const char *value)
+{
+    assert(tree != NULL);
+
+    struct app_tree *item = tree_new_item(tree);
+
+    item->key = kore_strdup(key);
+    item->value.str = kore_strdup(value);
+    item->type = T_STRING; 
+}
+
+/*
+ * Put user pointer in cache tree
+ */
+void
+tree_put_ptr(struct app_tree *tree, const char *key, void *value)
+{
+    assert(tree != NULL);
+
+    struct app_tree *item = tree_new_item(tree);
+
+    item->key = kore_strdup(key);
+    item->value.str = value;
+    item->type = T_POINTER; 
 }
