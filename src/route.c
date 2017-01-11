@@ -25,7 +25,7 @@ route(main) {
 		"<html>"
 		"<head><title>Welcome</title></head>"
 		"<body>"
-		"<h1>Welcome</h1>"
+		"<h1>Welcome to Ayahesa</h1>"
 		"</body>"
 		"</html>";
 
@@ -61,6 +61,10 @@ endpoint(core)
 	if (!strcmp(request.method, "status")) {
 		return jsonrpc_result(&request, write_string, "OK");
 	}
+
+	/* Call controller */
+	jrpc_invoke("echo", echo);
+	jrpc_invoke("date", date);
 
 	jrpc_return_error();
 }

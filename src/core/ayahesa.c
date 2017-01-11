@@ -26,7 +26,7 @@ init(int state)
 			kore_log(LOG_NOTICE, "load ayahesa");
 			application_create(&root_app);
 			application_config(root_app, CONFIG);
-			application_release(root_app);//TODO: FOR NOW!
+			// application_release(root_app);//TODO: FOR NOW!
 			break;
 		case KORE_MODULE_UNLOAD:
 			kore_log(LOG_NOTICE, "unload ayahesa");

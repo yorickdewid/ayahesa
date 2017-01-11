@@ -70,6 +70,12 @@
  * Endpoint directives
  */
 
+#define jrpc_invoke(m,f) \
+	if (!strcmp(request.method, m)) { \
+		extern int jrpc_method_##f(struct jsonrpc_request *request); \
+		return jrpc_method_##f(&request); \
+	}
+
 #define endpoint(e) \
 	int endpoint_##e(struct http_request *); \
     int endpoint_##e(struct http_request *_request) \
@@ -87,6 +93,10 @@
 
 #define jrpc_return_error() \
 	return jsonrpc_error(&request, JSONRPC_METHOD_NOT_FOUND, NULL);
+
+#define jrpc_method(m) \
+    int jrpc_method_##m(struct jsonrpc_request *); \
+    int jrpc_method_##m(struct jsonrpc_request *request)
 
 /*
  * Controller definitions

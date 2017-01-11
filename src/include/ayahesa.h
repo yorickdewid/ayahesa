@@ -21,7 +21,7 @@
 #include <kore/http.h>
 #include <kore/jsonrpc.h>
 
-#define VERSION "Ayahesa/0.2"
+#define VERSION "Ayahesa/0.3"
 #define CONFIG  "conf/framework.ini"
 #define TESTCODE
 
