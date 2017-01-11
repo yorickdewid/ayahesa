@@ -26,6 +26,7 @@ controller(foo)
 	http_response_header(request, "content-type", "text/html");
     if (cookie == NULL)
 	    http_response_header(request, "set-cookie", "authsess=dyfgyasdfwegfgwegrfw4i");
-	http_response(request, 200, "x", 1);
+
+	http_response(request, 200, "Blub!", 1);
     return_ok();
 }

@@ -74,7 +74,10 @@ void application_config(app_t *app, const char *configfile);
 void application_release(app_t *app);
 
 void cache_remove(app_t *app, const char *key);
-void cache_put_str(app_t *app, const char *key, const char *value);
 void cache_put_int(app_t *app, const char *key, int value);
+void cache_put_float(app_t *app, const char *key, float value);
+void cache_put_str(app_t *app, const char *key, const char *value);
+void cache_put_ptr(app_t *app, const char *key, void *value);
+
 
 #endif // _AYAHESA_H_
