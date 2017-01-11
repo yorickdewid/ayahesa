@@ -46,7 +46,7 @@ int
 about(struct http_request *req)
 {
 	char buffer[256];
-	const char *default_page = "" 
+	const char *default_page =
 		"<html>"
 		"<head><title>Ayahesa</title></head>"
 		"<body>"

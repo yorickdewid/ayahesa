@@ -10,6 +10,12 @@
 
 #include "ayahesa.h"
 
+/**
+ * Foo controller
+ *
+ * Test the request information and set a cookie
+ * when not done before. Report example text back.
+ */
 controller(foo)
 {
     if (request->host)

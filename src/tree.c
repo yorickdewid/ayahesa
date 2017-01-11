@@ -144,7 +144,6 @@ tree_new_item(struct app_tree *tree)
     
     if (idx == EISFULL)
         idx = tree_expand(tree);
-printf("i:%d\n", idx);//TODO: remove
 
     tree->child.ptr[idx] = (struct app_tree *)kore_malloc(sizeof(struct app_tree));
     tree->child.ptr[idx]->key = NULL;

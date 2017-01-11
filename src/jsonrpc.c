@@ -9,9 +9,9 @@
 #include <kore/http.h>
 #include <kore/jsonrpc.h>
 
-int	jrpc_endpoint(struct http_request *);
+int	jrpc_xendpoint(struct http_request *);
 
-static int
+int
 write_string(struct jsonrpc_request *req, void *ctx)
 {
 	const unsigned char *str = (unsigned char *)ctx;
@@ -42,7 +42,7 @@ write_string_array_params(struct jsonrpc_request *req, void *ctx)
 }
 
 int
-jrpc_endpoint(struct http_request *http_req)
+jrpc_xendpoint(struct http_request *http_req)
 {
 	struct jsonrpc_request	req;
 	int			ret;

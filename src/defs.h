@@ -18,19 +18,28 @@
 #define app_instance_id() \
     root_app->value.str
 
-#define return_ok() return (KORE_RESULT_OK); 
+#define return_ok() \
+	return (KORE_RESULT_OK); 
 
 #define http_get() \
 	if (request->method != HTTP_METHOD_GET) { \
-		http_response_header(request, "allow", "get"); \
-		http_response(request, 405, NULL, 0); \
+		http_response_header(request, "allow", "GET"); \
+		http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
 		return (KORE_RESULT_OK); \
 	}
 
 #define http_post() \
 	if (request->method != HTTP_METHOD_POST) { \
-		http_response_header(request, "allow", "post"); \
-		http_response(request, 405, NULL, 0); \
+		http_response_header(request, "allow", "POST"); \
+		http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
+		return (KORE_RESULT_OK); \
+	}
+
+#define http_post_put() \
+	if (request->method != HTTP_METHOD_POST && \
+        request->method != HTTP_METHOD_PUT) { \
+		http_response_header(request, "allow", "POST,PUT"); \
+		http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
 		return (KORE_RESULT_OK); \
 	}
 
@@ -56,6 +65,28 @@
 	http_response_header(request, "content-type", "text/html"); \
 	http_response(request, 200, t, strlen(t)); \
 	return (KORE_RESULT_OK);
+
+/*
+ * Endpoint directives
+ */
+
+#define endpoint(e) \
+	int endpoint_##e(struct http_request *); \
+    int endpoint_##e(struct http_request *_request) \
+
+#define jrpc_parse() \
+	struct jsonrpc_request request; int ret; \
+	if (_request->method != HTTP_METHOD_POST && _request->method != HTTP_METHOD_PUT) { \
+		http_response_header(_request, "allow", "POST,PUT"); \
+		http_response(_request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
+		return (KORE_RESULT_OK); \
+	} \
+	if ((ret = jsonrpc_read_request(_request, &request)) != 0) { \
+		return jsonrpc_error(&request, ret, NULL); \
+	}
+
+#define jrpc_return_error() \
+	return jsonrpc_error(&request, JSONRPC_METHOD_NOT_FOUND, NULL);
 
 /*
  * Controller definitions

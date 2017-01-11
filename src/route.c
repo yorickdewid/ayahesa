@@ -21,7 +21,8 @@ route(root) { redirect("/app/main"); }
  * Welcome page
  */
 route(main) {
-	const char *default_page = "<html>"
+	const char *default_page = 
+		"<html>"
 		"<head><title>Welcome</title></head>"
 		"<body>"
 		"<h1>Welcome</h1>"
@@ -34,13 +35,32 @@ route(main) {
 	http_response_header(request, "content-type", "text/html");
 	http_response_header(request, "set-cookie", "_umaysess=3745693");
 	http_response(request, 200, default_page, strlen(default_page));
+
 	return_ok();
 }
 
 /*
- * Call controller
+ * Call foo controller
  */
 route(foo) {
     invoke(foo);
+
 	return_ok();
+}
+
+int write_string(struct jsonrpc_request *req, void *ctx); //TODO: remove
+
+/*
+ * JSON-RPC Endpoint
+ */
+endpoint(core)
+{
+	jrpc_parse();
+
+	/* Return status OK */
+	if (!strcmp(request.method, "status")) {
+		return jsonrpc_result(&request, write_string, "OK");
+	}
+
+	jrpc_return_error();
 }
