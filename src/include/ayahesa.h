@@ -11,8 +11,8 @@
 #ifndef _AYAHESA_H_
 #define _AYAHESA_H_
 
-#include "compat.h"
-#include "defs.h"
+#include "core/compat.h"
+#include "core/defs.h"
 
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_tree.h>

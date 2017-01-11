@@ -8,7 +8,7 @@
  * permission of the author.
  */
 
-#include "ayahesa.h"
+#include "../include/ayahesa.h"
 #include "tree.h"
 
 #include <assert.h>

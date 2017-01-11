@@ -8,7 +8,7 @@
  * permission of the author.
  */
 
-#include "ayahesa.h"
+#include "../include/ayahesa.h"
 
 int		init(int);
 int		about(struct http_request *);
