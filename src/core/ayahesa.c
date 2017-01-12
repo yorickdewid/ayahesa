@@ -56,7 +56,7 @@ about(struct http_request *req)
 		"</body>"
 		"</html>";
 
-	sprintf(buffer, default_page, root_app->value.str);
+	sprintf(buffer, default_page, app_instance_id());
 
 	if (req->method != HTTP_METHOD_GET) {
 		http_response_header(req, "allow", "get");

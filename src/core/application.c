@@ -59,14 +59,8 @@ application_create(app_t **app)
 static int
 load_config_tree(void *user, const char *section, const char *name, const char *value)
 {
-    static char prev_section[50] = "";
+    // static char prev_section[50] = "";
     app_t *app = (app_t *)user;
-
-    if (strcmp(section, prev_section)) {
-        printf("%s[%s]\n", (prev_section[0] ? "\n" : ""), section);
-        strncpy(prev_section, section, sizeof(prev_section));
-        prev_section[sizeof(prev_section) - 1] = '\0';
-    }
 
     /* Config item must have string value */
     if (!strcmp(name, "app_name") || !strcmp(name, "app_env") || !strcmp(name, "app_key")) {
@@ -84,6 +78,19 @@ load_config_tree(void *user, const char *section, const char *name, const char *
              config_put_int(app, "debug", 0);
          }
          return 1;
+    }
+
+    /* Prefix section */
+    size_t szc = strlen(section);
+    if (szc) {
+        char *key = (char *)kore_malloc(szc + 1 + strlen(name) + 1);
+        strcpy(key, section);
+        strcat(key, ".");
+        strcat(key, name);
+
+        config_put_str(app, key, value);
+        kore_free(key);
+        return 1;
     }
 
     config_put_str(app, name, value);
@@ -138,6 +145,7 @@ application_config(app_t *app, const char *configfile)
     validate_config(app);
 
     tree_dump(app->child.ptr[TREE_CONFIG]);
+    tree_dump(app->child.ptr[TREE_CACHE]);
 }
 
 /*

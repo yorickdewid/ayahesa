@@ -124,7 +124,6 @@ tree_contains(struct app_tree *tree, const char *key)
     return 0;
 }
 
-
 /*
  * Remove item from tree
  */
