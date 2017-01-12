@@ -106,6 +106,26 @@ tree_free(struct app_tree *node)
 }
 
 /*
+ * Check if tree contains key
+ */
+int
+tree_contains(struct app_tree *tree, const char *key)
+{
+    unsigned int i;
+
+    assert(tree != NULL);
+
+    for (i=0; i<tree->child.alloc_cnt; ++i) {
+        if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+
+/*
  * Remove item from tree
  */
 void
@@ -210,3 +230,53 @@ tree_put_ptr(struct app_tree *tree, const char *key, void *value)
     item->value.str = value;
     item->type = T_POINTER; 
 }
+
+// #ifdef DEBUG
+
+void
+tree_dump(struct app_tree *node)
+{
+    unsigned int i; 
+
+    /* Skip empty nodes */
+    if (node == NULL)
+        return;
+
+    if (node->key != NULL)
+        printf(">> %s -> ", node->key);
+
+    switch (node->type) {
+        case T_STRING:
+            printf("%s(str)\n", node->value.str);
+            break;
+        case T_POINTER:
+            printf("(ptr)\n");
+            break;
+        case T_INT:
+            printf("%d(int)\n", node->value.i);
+            break;
+        case T_NULL:
+            printf("(null)\n");
+            break;
+        case T_FLOAT:
+            printf("%f(float)\n", node->value.f);
+            break;
+        default:
+            printf("(?)\n");
+            break;
+    }
+
+    /* Return when there is no subtree */
+    if (node->child.ptr == NULL)
+        return;
+
+    printf("> %d children\n", node->child.alloc_cnt);
+
+    /* Traverse down */
+    for (i=0; i<node->child.alloc_cnt; ++i) {
+        if (node->child.ptr[i] != NULL)
+            tree_dump(node->child.ptr[i]);
+    }
+}
+
+// #endif

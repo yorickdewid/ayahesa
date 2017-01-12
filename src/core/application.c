@@ -10,6 +10,7 @@
 
 #include "../include/ayahesa.h"
 #include "tree.h"
+#include "ini.h"
 
 #include <assert.h>
 #include <time.h>
@@ -53,6 +54,71 @@ application_create(app_t **app)
 }
 
 /*
+ * Parse INI file and load key,value into config tree
+ */
+static int
+load_config_tree(void *user, const char *section, const char *name, const char *value)
+{
+    static char prev_section[50] = "";
+    app_t *app = (app_t *)user;
+
+    if (strcmp(section, prev_section)) {
+        printf("%s[%s]\n", (prev_section[0] ? "\n" : ""), section);
+        strncpy(prev_section, section, sizeof(prev_section));
+        prev_section[sizeof(prev_section) - 1] = '\0';
+    }
+
+    /* Config item must have string value */
+    if (!strcmp(name, "app_name") || !strcmp(name, "app_env") || !strcmp(name, "app_key")) {
+        if (!strlen(value)) {
+            puts("Config item starting with 'app_' cannot be empty");
+            abort();
+        }
+    }
+
+    /* Redefine config */
+    if (!strcmp(name, "debug")) {
+        if (!strcmp(value, "true") || !strcmp(value, "1")) {
+            config_put_int(app, "debug", 1);
+         } else {
+             config_put_int(app, "debug", 0);
+         }
+         return 1;
+    }
+
+    config_put_str(app, name, value);
+    return 1;
+}
+
+static void
+validate_config(app_t *app)
+{
+    int has_name = tree_contains(app->child.ptr[TREE_CONFIG], "app_name");
+    int has_env = tree_contains(app->child.ptr[TREE_CONFIG], "app_env");
+    int has_key = tree_contains(app->child.ptr[TREE_CONFIG], "app_key");
+    int has_debug = tree_contains(app->child.ptr[TREE_CONFIG], "debug");
+
+    if (!has_name) {
+        puts("'app_name' cannot be empty");
+        abort();
+    }
+
+    if (!has_env) {
+        puts("'app_env' cannot be empty");
+        abort();
+    }
+
+    if (!has_key) {
+        puts("'app_key' cannot be empty");
+        abort();
+    }
+
+    if (!has_debug) {
+        config_put_int(app, "debug", 0);
+    }
+}
+
+/*
  * Parse application configuration
  */
 void
@@ -60,9 +126,18 @@ application_config(app_t *app, const char *configfile)
 {
     assert(app != NULL);
 
-    /* Default config */
-    config_put_int(app, "debug", 0);
-    config_put_str(app, "env", "prod");
+    /* Boot timestamp */
+    config_put_int(app, "boot", (int)time(NULL));
+
+    if (ini_parse(configfile, load_config_tree, (void *)app) < 0) {
+        printf("Framework configuration error: %s\n", configfile);
+        abort();
+    }
+
+    /* Check and default config */
+    validate_config(app);
+
+    tree_dump(app->child.ptr[TREE_CONFIG]);
 }
 
 /*

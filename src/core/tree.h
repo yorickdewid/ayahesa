@@ -59,11 +59,17 @@ int tree_get_new_index(struct app_tree *node);
 int tree_expand(struct app_tree *node);
 void tree_free(struct app_tree *node);
 
+int tree_contains(struct app_tree *tree, const char *key);
+
 void tree_remove(struct app_tree *tree, const char *key);
 
 void tree_put_int(struct app_tree *tree, const char *key, int value);
 void tree_put_float(struct app_tree *tree, const char *key, float value);
 void tree_put_str(struct app_tree *tree, const char *key, const char *value);
 void tree_put_ptr(struct app_tree *tree, const char *key, void *value);
+
+// #ifdef DEBUG
+void tree_dump(struct app_tree *node);
+// #endif // DEBUG
 
 #endif // _AYAHESA_TREE_H_
