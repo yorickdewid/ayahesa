@@ -9,6 +9,7 @@
  */
 
 #include "../include/ayahesa.h"
+#include "util.h"
 #include "tree.h"
 #include "ini.h"
 
@@ -57,15 +58,14 @@ application_create(app_t **app)
  * Parse INI file and load key,value into config tree
  */
 static int
-load_config_tree(void *user, const char *section, const char *name, const char *value)
+load_config_tree(void *user, const char *section, const char *name, const char *value, int lineno)
 {
-    // static char prev_section[50] = "";
     app_t *app = (app_t *)user;
 
     /* Config item must have string value */
     if (!strcmp(name, "app_name") || !strcmp(name, "app_env") || !strcmp(name, "app_key")) {
         if (!strlen(value)) {
-            puts("Config item starting with 'app_' cannot be empty");
+            printf("Config item starting with 'app_' cannot be empty (line:%d)\n", lineno);
             abort();
         }
     }
@@ -75,7 +75,7 @@ load_config_tree(void *user, const char *section, const char *name, const char *
         if (!strcmp(value, "true") || !strcmp(value, "1")) {
             config_put_int(app, "debug", 1);
          } else {
-             config_put_int(app, "debug", 0);
+            config_put_int(app, "debug", 0);
          }
          return 1;
     }
@@ -93,6 +93,7 @@ load_config_tree(void *user, const char *section, const char *name, const char *
         return 1;
     }
 
+    /* Append to tree */
     config_put_str(app, name, value);
     return 1;
 }
@@ -105,24 +106,27 @@ validate_config(app_t *app)
     int has_key = tree_contains(app->child.ptr[TREE_CONFIG], "app_key");
     int has_debug = tree_contains(app->child.ptr[TREE_CONFIG], "debug");
 
+    /* No app_name */
     if (!has_name) {
         puts("'app_name' cannot be empty");
         abort();
     }
 
+    /* No app_env */
     if (!has_env) {
         puts("'app_env' cannot be empty");
         abort();
     }
 
+    /* No app_key */
     if (!has_key) {
         puts("'app_key' cannot be empty");
         abort();
     }
 
-    if (!has_debug) {
+    /* Set debug to false if not found */
+    if (!has_debug)
         config_put_int(app, "debug", 0);
-    }
 }
 
 /*
@@ -148,6 +152,57 @@ application_config(app_t *app, const char *configfile)
     tree_dump(app->child.ptr[TREE_CACHE]);
 }
 
+char *
+application_uptime(app_t *app)
+{
+    int diff_tm;
+    time_t start_tm = 0;
+    time_t end_tm = 0;
+    static char uptime[32];
+
+    tree_get_int(app->child.ptr[TREE_CONFIG], "boot", (int *)&start_tm);
+
+    time(&end_tm);
+    diff_tm = difftime(end_tm, start_tm);
+
+    int days = diff_tm / 86400;
+    int hours = diff_tm / 3600;
+    int remainder = diff_tm % 3600;
+    int minutes = remainder / 60;
+    int seconds = remainder % 60;
+
+    sprintf(uptime, "%d days, %02d:%02d:%02d\n", days, hours, minutes, seconds);
+    return uptime;
+}
+
+int
+application_isdebug(app_t *app)
+{
+    int debug = 0;
+
+    tree_get_int(app->child.ptr[TREE_CONFIG], "debug", &debug);
+
+    return debug;
+}
+
+char *
+application_name(app_t *app)
+{
+    char *name = NULL;
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app_name", &name);
+
+    return name;
+}
+
+char *
+application_environment(app_t *app)
+{
+    char *name = NULL;
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app_env", &name);
+
+    return name;
+}
+
 /*
  * Release application
  */
@@ -157,6 +212,7 @@ application_release(app_t *app)
     if (app == NULL)
         return;
 
+    /* Traverse tree and free pointers */
     tree_free(app);
 
     kore_free((void *)app);

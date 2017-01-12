@@ -8,33 +8,19 @@
  * permission of the author.
  */
 
+#include "../include/ayahesa.h"
+#include "util.h"
 #include "ini.h"
 
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
+#define INI_MAX_LINE 200
 #define MAX_SECTION 50
 #define MAX_NAME 50
 
-/* Strip whitespace chars off end of given string, in place. Return s. */
-static char *
-rstrip(char* s)
-{
-    char *p = s + strlen(s);
-    while (p > s && isspace((unsigned char)(*--p)))
-        *p = '\0';
-    return s;
-}
-
-/* Return pointer to first non-whitespace char in given string. */
-static char *
-lskip(char *s)
-{
-    while (*s && isspace((unsigned char)(*s)))
-        s++;
-    return (char*)s;
-}
+#define HANDLER(u, s, n, v) handler(u, s, n, v, lineno)
 
 /* Return pointer to first char (of chars) or inline comment in given string,
    or pointer to null at end of string if neither found. Inline comment must
@@ -42,28 +28,14 @@ lskip(char *s)
 static char *
 find_chars_or_comment(char *s, const char *chars)
 {
-#if INI_ALLOW_INLINE_COMMENTS
     int was_space = 0;
     while (*s && (!chars || !strchr(chars, *s)) &&
-           !(was_space && strchr(INI_INLINE_COMMENT_PREFIXES, *s))) {
+           !(was_space && strchr(";", *s))) {
         was_space = isspace((unsigned char)(*s));
         s++;
     }
-#else
-    while (*s && (!chars || !strchr(chars, *s))) {
-        s++;
-    }
-#endif
-    return (char *)s;
-}
 
-/* Version of strncpy that ensures dest (size bytes) is null-terminated. */
-static char *
-strncpy0(char* dest, const char* src, size_t size)
-{
-    strncpy(dest, src, size);
-    dest[size - 1] = '\0';
-    return dest;
+    return (char *)s;
 }
 
 /* See documentation in header file. */
@@ -71,62 +43,45 @@ int
 ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
                      void *user)
 {
-    /* Uses a fair bit of stack (use heap instead if you need to) */
-#if INI_USE_STACK
-    char line[INI_MAX_LINE];
-#else
-    char* line;
-#endif
+    char *line;
     char section[MAX_SECTION] = "";
     char prev_name[MAX_NAME] = "";
 
-    char* start;
-    char* end;
-    char* name;
-    char* value;
+    char *start;
+    char *end;
+    char *name;
+    char *value;
     int lineno = 0;
     int error = 0;
 
-#if !INI_USE_STACK
-    line = (char *)malloc(INI_MAX_LINE);
+    line = (char *)kore_malloc(INI_MAX_LINE);
     if (!line) {
         return -2;
     }
-#endif
-
-#if INI_HANDLER_LINENO
-#define HANDLER(u, s, n, v) handler(u, s, n, v, lineno)
-#else
-#define HANDLER(u, s, n, v) handler(u, s, n, v)
-#endif
 
     /* Scan through stream line by line */
     while (reader(line, INI_MAX_LINE, stream) != NULL) {
         lineno++;
 
         start = line;
-#if INI_ALLOW_BOM
+
         if (lineno == 1 && (unsigned char)start[0] == 0xEF &&
                            (unsigned char)start[1] == 0xBB &&
                            (unsigned char)start[2] == 0xBF) {
             start += 3;
         }
-#endif
+
         start = lskip(rstrip(start));
 
         if (*start == ';' || *start == '#') {
             /* Per Python configparser, allow both ; and # comments at the
                start of a line */
-        }
-#if INI_ALLOW_MULTILINE
-        else if (*prev_name && *start && start > line) {
+        } else if (*prev_name && *start && start > line) {
             /* Non-blank line with leading whitespace, treat as continuation
                of previous name's value (as per Python configparser). */
             if (!HANDLER(user, section, prev_name, start) && !error)
                 error = lineno;
-        }
-#endif
-        else if (*start == '[') {
+        } else if (*start == '[') {
             /* A "[section]" line */
             end = find_chars_or_comment(start + 1, "]");
             if (*end == ']') {
@@ -145,11 +100,9 @@ ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
                 *end = '\0';
                 name = rstrip(start);
                 value = end + 1;
-#if INI_ALLOW_INLINE_COMMENTS
                 end = find_chars_or_comment(value, NULL);
                 if (*end)
                     *end = '\0';
-#endif
                 value = lskip(value);
                 rstrip(value);
 
@@ -163,15 +116,12 @@ ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
             }
         }
 
-#if INI_STOP_ON_FIRST_ERROR
+        /* Stop parsing on first error. */
         if (error)
             break;
-#endif
     }
 
-#if !INI_USE_STACK
-    free(line);
-#endif
+    kore_free(line);
 
     return error;
 }

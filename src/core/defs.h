@@ -15,7 +15,7 @@
  * Generic
  */
 
-#define app_instance_id() \
+#define application_instance() \
     root_app->value.str
 
 #define return_ok() \

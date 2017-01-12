@@ -40,23 +40,45 @@ init(int state)
 	return (KORE_RESULT_OK);
 }
 
-#if defined(TESTCODE)
+#if defined(STATUSPAGE)
 
 int
-about(struct http_request *req)
+status(struct http_request *req)
 {
-	char buffer[256];
 	const char *default_page =
 		"<html>"
-		"<head><title>Ayahesa</title></head>"
+		"<head>"
+		"<title>Ayahesa</title>"
+		"<style>"
+		"table{font-family:arial,sans-serif;border-collapse:collapse;width: 100%}"
+		"th{background-color:#ffb6c1}"
+		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
+		"tr:nth-child(even){background-color:#f1f1f1}"
+		"</style>"
+		"</head>"
 		"<body>"
 		"<h2>Ayahesa Core</h2>"
-		"<div>Instance %s</div>"
-		"<div>" VERSION "</div>"
+		"<table>"
+		"<tr><th>Key</th><th>Value</th></tr>"
+		"<tr><td>Instance</td><td>%s</td></tr>"
+		"<tr><td>Application</td><td>%s</td></tr>"
+		"<tr><td>Environment</td><td>%s</td></tr>"
+		"<tr><td>Debug</td><td>%s</td></tr>"
+		"<tr><td>Uptime</td><td>%s</td></tr>"
+		"<tr><td>Version</td><td>" VERSION "</td></tr>"
+		"</table>"
 		"</body>"
 		"</html>";
 
-	sprintf(buffer, default_page, app_instance_id());
+	char *buffer = (char *)kore_malloc(strlen(default_page) + 256);
+	memset(buffer, '\0', strlen(default_page) + 256);
+
+	sprintf(buffer, default_page,
+		application_instance(),
+		application_name(root_app),
+		application_environment(root_app),
+		application_isdebug(root_app) ? "True" : "False",
+		application_uptime(root_app));
 
 	if (req->method != HTTP_METHOD_GET) {
 		http_response_header(req, "allow", "get");
@@ -67,6 +89,7 @@ about(struct http_request *req)
 	http_response_header(req, "content-type", "text/html");
 	http_response_header(req, "set-cookie", "_umaysess=3745693");
 	http_response(req, 200, buffer, strlen(buffer));
+	kore_free(buffer);
 	return (KORE_RESULT_OK);
 }
 
@@ -74,14 +97,6 @@ int
 error(struct http_request *req)
 {
 	http_response(req, 500, NULL, 0);
-	return (KORE_RESULT_OK);
-}
-
-int
-status(struct http_request *req)
-{
-	http_response_header(req, "content-type", "text/plain");
-	http_response(req, 200, "Server is OK", 12);
 	return (KORE_RESULT_OK);
 }
 

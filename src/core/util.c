@@ -9,6 +9,7 @@
  */
 
 #include "../include/ayahesa.h"
+#include "util.h"
 
 #include <ctype.h>
 
@@ -33,6 +34,25 @@ generate_instance_id(void)
     str[9] = '\0';
 
     return str;
+}
+
+/* Strip whitespace chars off end of given string, in place. Return s. */
+char *
+rstrip(char* s)
+{
+    char *p = s + strlen(s);
+    while (p > s && isspace((unsigned char)(*--p)))
+        *p = '\0';
+    return s;
+}
+
+/* Return pointer to first non-whitespace char in given string. */
+char *
+lskip(char *s)
+{
+    while (*s && isspace((unsigned char)(*s)))
+        s++;
+    return (char*)s;
 }
 
 const char *

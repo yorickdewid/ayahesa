@@ -171,7 +171,7 @@ tree_new_item(struct app_tree *tree)
 }
 
 /*
- * Put integer in cache tree
+ * Put integer in tree
  */
 void
 tree_put_int(struct app_tree *tree, const char *key, int value)
@@ -186,7 +186,7 @@ tree_put_int(struct app_tree *tree, const char *key, int value)
 }
 
 /*
- * Put float in cache tree
+ * Put float in tree
  */
 void
 tree_put_float(struct app_tree *tree, const char *key, float value)
@@ -201,7 +201,7 @@ tree_put_float(struct app_tree *tree, const char *key, float value)
 }
 
 /*
- * Put string in cache tree
+ * Put string in tree
  */
 void
 tree_put_str(struct app_tree *tree, const char *key, const char *value)
@@ -216,7 +216,7 @@ tree_put_str(struct app_tree *tree, const char *key, const char *value)
 }
 
 /*
- * Put user pointer in cache tree
+ * Put pointer in tree
  */
 void
 tree_put_ptr(struct app_tree *tree, const char *key, void *value)
@@ -228,6 +228,46 @@ tree_put_ptr(struct app_tree *tree, const char *key, void *value)
     item->key = kore_strdup(key);
     item->value.str = value;
     item->type = T_POINTER; 
+}
+
+/*
+ * Get integer in tree
+ */
+void
+tree_get_int(struct app_tree *tree, const char *key, int *value)
+{
+    unsigned int i;
+
+    assert(tree != NULL);
+
+    for (i=0; i<tree->child.alloc_cnt; ++i) {
+        if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
+            if (tree->child.ptr[i]->type != T_INT)
+                return;
+
+            *value = tree->child.ptr[i]->value.i;
+        }
+    }
+}
+
+/*
+ * Get string in tree
+ */
+void
+tree_get_str(struct app_tree *tree, const char *key, char **value)
+{
+    unsigned int i;
+
+    assert(tree != NULL);
+
+    for (i=0; i<tree->child.alloc_cnt; ++i) {
+        if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
+            if (tree->child.ptr[i]->type != T_STRING)
+                return;
+
+            *value = tree->child.ptr[i]->value.str;
+        }
+    }
 }
 
 // #ifdef DEBUG

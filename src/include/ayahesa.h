@@ -23,10 +23,10 @@
 
 #define VERSION "Ayahesa/0.3"
 #define CONFIG  "conf/framework.ini"
-#define TESTCODE
+#define STATUSPAGE
 
 #ifdef DEBUG
-# define TESTCODE
+# define STATUSPAGE
 #endif
 
 #define T_FLAG_READONLY 0x1
@@ -70,14 +70,18 @@ extern app_t *root_app;
 /*
  * Prototypes
  */
-char *generate_instance_id(void);
-const char *http_get_cookie(struct http_request *request, const char *name);
+const char *http_get_cookie(struct http_request *, const char *);
 
-void application_create(app_t **app);
-void application_config(app_t *app, const char *configfile);
-void application_release(app_t *app);
+void application_create(app_t **);
+void application_config(app_t *, const char *);
+void application_release(app_t *);
 
-int jrpc_write_string(struct jsonrpc_request *req, void *ctx);
-int jrpc_write_string_array_params(struct jsonrpc_request *req, void *ctx);
+char *application_uptime(app_t *);
+int application_isdebug(app_t *);
+char *application_name(app_t *);
+char *application_environment(app_t *);
+
+int jrpc_write_string(struct jsonrpc_request *, void *);
+int jrpc_write_string_array_params(struct jsonrpc_request *, void *);
 
 #endif // _AYAHESA_H_
