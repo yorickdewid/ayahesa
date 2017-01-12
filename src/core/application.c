@@ -63,22 +63,6 @@ application_config(app_t *app, const char *configfile)
     /* Default config */
     config_put_int(app, "debug", 0);
     config_put_str(app, "env", "prod");
-
-    cache_put_str(app, "appname", "Ayahesa");//0
-    cache_put_str(app, "appkey1", "ABC@123");
-    cache_put_str(app, "appkey2", "ABC@123");
-    cache_put_str(app, "appkey3", "ABC@123");
-    cache_put_str(app, "appkey4", "ABC@123");
-    cache_put_str(app, "appkey5", "ABC@123");
-    cache_put_str(app, "appkey6", "ABC@123");
-    cache_put_str(app, "appkey7", "ABC@123");
-    cache_put_str(app, "appkey8", "ABC@123");//8
-    cache_put_str(app, "appkey9", "ABC@123");//9
-    cache_put_str(app, "appkey10", "q");
-    cache_put_str(app, "appkey11", "q");
-    cache_remove(app, "appkey3");
-    cache_put_str(app, "appkey12", "q");
-    cache_put_int(app, "appkey16", 12);
 }
 
 /*

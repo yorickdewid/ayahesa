@@ -77,4 +77,7 @@ void application_create(app_t **app);
 void application_config(app_t *app, const char *configfile);
 void application_release(app_t *app);
 
+int jrpc_write_string(struct jsonrpc_request *req, void *ctx);
+int jrpc_write_string_array_params(struct jsonrpc_request *req, void *ctx);
+
 #endif // _AYAHESA_H_

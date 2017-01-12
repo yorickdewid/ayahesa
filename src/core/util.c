@@ -64,3 +64,32 @@ http_get_cookie(struct http_request *request, const char *name)
 
     return NULL;
 }
+
+int
+jrpc_write_string(struct jsonrpc_request *req, void *ctx)
+{
+	const unsigned char *str = (unsigned char *)ctx;
+
+	return yajl_gen_string(req->gen, str, strlen((const char *)str));
+}
+
+int
+jrpc_write_string_array_params(struct jsonrpc_request *req, void *ctx)
+{
+	int status = 0;
+
+	if (!YAJL_GEN_KO(status = yajl_gen_array_open(req->gen))) {
+		for (size_t i = 0; i < req->params->u.array.len; i++) {
+			yajl_val yajl_str = req->params->u.array.values[i];
+			char	 *str = YAJL_GET_STRING(yajl_str);
+
+			if (YAJL_GEN_KO(status = yajl_gen_string(req->gen,
+			    (unsigned char *)str, strlen(str))))
+				break;
+		}
+		if (status == 0)
+			status = yajl_gen_array_close(req->gen);
+	}
+
+	return status;
+}

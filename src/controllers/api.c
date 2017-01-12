@@ -7,13 +7,11 @@
  * Content can not be copied and/or distributed without the express
  * permission of the author.
  */
+
 #define _POSIX_SOURCE //TODO: for the moment
 #include <ayahesa.h>
 
 #include <time.h>
-
-int write_string_array_params(struct jsonrpc_request *req, void *ctx);
-int write_string(struct jsonrpc_request *req, void *ctx); //TODO: remove
 
 /**
  * Accept array of strings and echo the contents.
@@ -38,7 +36,7 @@ jrpc_method(echo)
         }
     }
 
-    return jsonrpc_result(request, write_string_array_params, NULL);
+    return jsonrpc_result(request, jrpc_write_string_array_params, NULL);
 }
 
 /**
@@ -76,5 +74,5 @@ jrpc_method(date)
     if (strftime(timestamp, sizeof(timestamp) - 1, "%c", &time_info) == 0)
         return jsonrpc_error(request, -4, "Failed to get printable date time");
 
-    return jsonrpc_result(request, write_string, timestamp);
+    return jsonrpc_result(request, jrpc_write_string, timestamp);
 }
