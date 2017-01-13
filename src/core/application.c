@@ -152,6 +152,9 @@ application_config(app_t *app, const char *configfile)
     tree_dump(app->child.ptr[TREE_CACHE]);
 }
 
+/*
+ * Application uptime
+ */
 char *
 application_uptime(app_t *app)
 {
@@ -166,8 +169,9 @@ application_uptime(app_t *app)
     diff_tm = difftime(end_tm, start_tm);
 
     int days = diff_tm / 86400;
-    int hours = diff_tm / 3600;
-    int remainder = diff_tm % 3600;
+    int remainder = diff_tm % 86400;
+    int hours = remainder / 3600;
+    remainder = diff_tm % 3600;
     int minutes = remainder / 60;
     int seconds = remainder % 60;
 
@@ -175,6 +179,9 @@ application_uptime(app_t *app)
     return uptime;
 }
 
+/*
+ * Application debug mode check
+ */
 int
 application_isdebug(app_t *app)
 {
@@ -185,6 +192,9 @@ application_isdebug(app_t *app)
     return debug;
 }
 
+/*
+ * Application name
+ */
 char *
 application_name(app_t *app)
 {
@@ -194,6 +204,9 @@ application_name(app_t *app)
     return name;
 }
 
+/*
+ * Application environment
+ */
 char *
 application_environment(app_t *app)
 {
