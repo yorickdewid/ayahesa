@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef NEED_STRDUP
 
@@ -38,5 +39,16 @@ strncpy0(char* dest, const char* src, size_t size)
     strncpy(dest, src, size);
     dest[size - 1] = '\0';
     return dest;
+}
+
+/* Convert string to lower */
+char *
+strtolower(char *str)
+{
+    for(int i = 0; str[i]; i++){
+        str[i] = tolower(str[i]);
+    }
+
+    return str;
 }
 

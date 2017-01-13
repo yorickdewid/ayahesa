@@ -9,6 +9,7 @@
  */
 
 #include "../include/ayahesa.h"
+#include "base64.h"
 #include "util.h"
 
 #include <ctype.h>
@@ -83,6 +84,32 @@ http_get_cookie(struct http_request *request, const char *name)
     }
 
     return NULL;
+}
+
+int
+http_basic_auth(struct http_request *request, const char *auth)
+{
+	char *header_auth = NULL;
+    http_request_header(request, "authorization", &header_auth);
+	if (header_auth == NULL)
+		return 0;
+	
+    char *method = strtok(header_auth, " ");
+    if (method == NULL)
+        return 0;
+
+    if (!strcmp(strtolower(method), "basic")) {
+        char *code = strtok(NULL, " ");
+        char *undecode = (char *)base64_decode(code, strlen(code));
+        if (!strcmp(undecode, auth)) {
+            kore_free(undecode);
+            return 1;
+        }
+
+        kore_free(undecode);
+    }
+
+    return 0;
 }
 
 int

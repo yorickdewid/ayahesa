@@ -15,6 +15,7 @@ int		about(struct http_request *);
 int		error(struct http_request *);
 int		status(struct http_request *);
 int		teapot(struct http_request *);
+int 	auth_basic(struct http_request *req);
 
 app_t *root_app = NULL;
 
@@ -50,7 +51,7 @@ status(struct http_request *req)
 		"<head>"
 		"<title>Ayahesa</title>"
 		"<style>"
-		"table{font-family:arial,sans-serif;border-collapse:collapse;width: 100%}"
+		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%%}"
 		"th{background-color:#ffb6c1}"
 		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
 		"tr:nth-child(even){background-color:#f1f1f1}"
@@ -70,6 +71,12 @@ status(struct http_request *req)
 		"</body>"
 		"</html>";
 
+	if (!http_basic_auth(req, "eve:ABC@123")) {
+		http_response_header(req, "www-authenticate", "Basic realm=\"Status page\"");
+		http_response(req, 401, NULL, 0);
+		return (KORE_RESULT_OK);
+	}
+
 	char *buffer = (char *)kore_malloc(strlen(default_page) + 256);
 	memset(buffer, '\0', strlen(default_page) + 256);
 
@@ -87,7 +94,6 @@ status(struct http_request *req)
 	}
 
 	http_response_header(req, "content-type", "text/html");
-	http_response_header(req, "set-cookie", "_umaysess=3745693");
 	http_response(req, 200, buffer, strlen(buffer));
 	kore_free(buffer);
 	return (KORE_RESULT_OK);
@@ -106,6 +112,35 @@ teapot(struct http_request *req)
 	http_response_header(req, "content-type", "text/plain");
 	http_response(req, 418, "I'm a teapot.", 13);
 	return (KORE_RESULT_OK);
+}
+
+int
+auth_basic(struct http_request *req)
+{
+	char *auth = NULL;
+    http_request_header(req, "authorization", &auth);
+
+	if (auth != NULL) {
+		http_response(req, 200, NULL, 0);
+		return (KORE_RESULT_OK);
+	}
+
+	http_response_header(req, "www-authenticate", "Basic realm=\"User Visible Realm\"");
+	http_response(req, 401, NULL, 0);
+	return (KORE_RESULT_OK);
+}
+
+int middleware_session(struct http_request *req, char *data);
+int
+middleware_session(struct http_request *req, char *data)
+{
+	//kore_log(LOG_NOTICE, "middleware_session: %s", data);
+	printf("middleware_session: %s\n", data);
+
+	if (!strcmp(data, "ABC@123"))
+		return (KORE_RESULT_OK);
+
+	return (KORE_RESULT_ERROR);
 }
 
 #endif // DEBUG

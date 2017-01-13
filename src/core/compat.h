@@ -20,5 +20,6 @@ char *ayahesa_strdup(const char *src);
 #endif // NEED_STRDUP
 
 char *strncpy0(char* dest, const char* src, size_t size);
+char *strtolower(char *str);
 
 #endif // _AYAHESA_COMPAT_H_

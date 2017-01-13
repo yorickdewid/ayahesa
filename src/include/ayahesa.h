@@ -71,6 +71,7 @@ extern app_t *root_app;
  * Prototypes
  */
 const char *http_get_cookie(struct http_request *, const char *);
+int http_basic_auth(struct http_request *, const char *);
 
 void application_create(app_t **);
 void application_config(app_t *, const char *);
