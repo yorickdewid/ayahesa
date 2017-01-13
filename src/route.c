@@ -83,3 +83,19 @@ endpoint(core)
 	/* No method found */
 	jrpc_return_error();
 }
+
+/*
+ * JSON-RPC Endpoint
+ */
+endpoint(auth)
+{
+	jrpc_parse();
+
+	/* Return status OK */
+	if (!strcmp(request.method, "status")) {
+		return jsonrpc_result(&request, jrpc_write_string, "OK");
+	}
+
+	/* No method found */
+	jrpc_return_error();
+}

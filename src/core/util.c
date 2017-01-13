@@ -14,6 +14,8 @@
 
 #include <ctype.h>
 
+static int basic_auth_count = 0;
+
 char *
 generate_instance_id(void)
 {
@@ -90,13 +92,23 @@ int
 http_basic_auth(struct http_request *request, const char *auth)
 {
 	char *header_auth = NULL;
+
+    if (basic_auth_count >= 5) {
+        sleep(5);
+        basic_auth_count = 0;
+    }
+
     http_request_header(request, "authorization", &header_auth);
-	if (header_auth == NULL)
+	if (header_auth == NULL) {
+        basic_auth_count++;
 		return 0;
+    }
 	
     char *method = strtok(header_auth, " ");
-    if (method == NULL)
+    if (method == NULL) {
+        basic_auth_count++;
         return 0;
+    }
 
     if (!strcmp(strtolower(method), "basic")) {
         char *code = strtok(NULL, " ");
@@ -109,6 +121,7 @@ http_basic_auth(struct http_request *request, const char *auth)
         kore_free(undecode);
     }
 
+    basic_auth_count++;
     return 0;
 }
 

@@ -71,6 +71,7 @@ status(struct http_request *req)
 		"</body>"
 		"</html>";
 
+	/* Protect route with basic authentication */
 	if (!http_basic_auth(req, "eve:ABC@123")) {
 		http_response_header(req, "www-authenticate", "Basic realm=\"Status page\"");
 		http_response(req, 401, NULL, 0);
