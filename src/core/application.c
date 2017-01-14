@@ -16,6 +16,11 @@
 #include <assert.h>
 #include <time.h>
 
+struct {
+	time_t boot;
+	unsigned int req_count;
+} internal_counter;
+
 /*
  * Bootstrap the application
  */
@@ -26,6 +31,10 @@ application_create(app_t **app)
 
     /* Seed random pool */
     srand(time(NULL));
+
+    /* Reset counters */
+    internal_counter.boot = time(NULL);
+    internal_counter.req_count = 0;
 
     /* Setup application root tree */
     app_t *root = (app_t *)kore_malloc(sizeof(app_t));
@@ -52,6 +61,15 @@ application_create(app_t **app)
     kore_log(LOG_NOTICE, "application instance %s", root->value.str);
 
     *app = root; 
+}
+
+/*
+ * Prepare for new connection
+ */
+void
+application_prelude(void)
+{
+    internal_counter.req_count++;
 }
 
 /*
@@ -137,9 +155,6 @@ application_config(app_t *app, const char *configfile)
 {
     assert(app != NULL);
 
-    /* Boot timestamp */
-    config_put_int(app, "boot", (int)time(NULL));
-
     if (ini_parse(configfile, load_config_tree, (void *)app) < 0) {
         printf("Framework configuration error: %s\n", configfile);
         abort();
@@ -159,14 +174,11 @@ char *
 application_uptime(app_t *app)
 {
     int diff_tm;
-    time_t start_tm = 0;
     time_t end_tm = 0;
     static char uptime[32];
 
-    tree_get_int(app->child.ptr[TREE_CONFIG], "boot", (int *)&start_tm);
-
     time(&end_tm);
-    diff_tm = difftime(end_tm, start_tm);
+    diff_tm = difftime(end_tm, internal_counter.boot);
 
     int days = diff_tm / 86400;
     int remainder = diff_tm % 86400;
@@ -177,6 +189,15 @@ application_uptime(app_t *app)
 
     sprintf(uptime, "%d days, %02d:%02d:%02d\n", days, hours, minutes, seconds);
     return uptime;
+}
+
+/*
+ * Application request counter
+ */
+unsigned int
+application_request_count(void)
+{
+    return internal_counter.req_count;
 }
 
 /*

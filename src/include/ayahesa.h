@@ -72,12 +72,15 @@ extern app_t *root_app;
  */
 const char *http_get_cookie(struct http_request *, const char *);
 int http_basic_auth(struct http_request *, const char *);
+char *http_remote_addr(struct http_request *);
 
 void application_create(app_t **);
 void application_config(app_t *, const char *);
 void application_release(app_t *);
+void application_prelude(void);
 
 char *application_uptime(app_t *);
+unsigned int application_request_count(void);
 int application_isdebug(app_t *);
 char *application_name(app_t *);
 char *application_environment(app_t *);

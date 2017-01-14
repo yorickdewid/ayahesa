@@ -34,7 +34,6 @@ aya_init(int state)
 			application_create(&root_app);
 			application_config(root_app, CONFIG);
 			http_server_version(SERVLET_VERSION);
-			// application_release(root_app);//TODO: FOR NOW!
 			break;
 		case KORE_MODULE_UNLOAD:
 			kore_log(LOG_NOTICE, "unload ayahesa");
@@ -58,6 +57,8 @@ aya_connect(struct connection *c)
 
 	c->disconnect = aya_disconnect;
 
+	application_prelude();
+
 	return (KORE_RESULT_OK);
 }
 
@@ -78,21 +79,30 @@ status(struct http_request *req)
 		"<title>Ayahesa</title>"
 		"<style>"
 		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%%}"
-		"th{background-color:#ffb6c1}"
+		"th{background-color:#9370db;color:#fff}"
 		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
 		"tr:nth-child(even){background-color:#f1f1f1}"
 		"</style>"
 		"</head>"
 		"<body>"
-		"<h2>Ayahesa Core</h2>"
+		"<h1>Ayahesa Core</h1>"
 		"<table>"
-		"<tr><th>Key</th><th>Value</th></tr>"
+		"<tr><th colspan=\"2\">Application</th></tr>"
 		"<tr><td>Instance</td><td>%s</td></tr>"
 		"<tr><td>Application</td><td>%s</td></tr>"
 		"<tr><td>Environment</td><td>%s</td></tr>"
 		"<tr><td>Debug</td><td>%s</td></tr>"
+		"<tr><th colspan=\"2\">Environment</th></tr>"
+		"<tr><td>Path</td><td>%s</td></tr>"
+		"<tr><td>Query string</td><td>%s</td></tr>"
+		"<tr><td>Host</td><td>%s</td></tr>"
+		"<tr><td>Agent</td><td>%s</td></tr>"
+		"<tr><td>Remote</td><td>%s</td></tr>"
+		"<tr><th colspan=\"2\">Core</th></tr>"
 		"<tr><td>Uptime</td><td>%s</td></tr>"
-		"<tr><td>Version</td><td>" VERSION "</td></tr>"
+		"<tr><td>Requests</td><td>%d</td></tr>"
+		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
+		"<tr><td>Servlet version</td><td>" SERVLET_VERSION "</td></tr>"
 		"</table>"
 		"</body>"
 		"</html>";
@@ -112,7 +122,13 @@ status(struct http_request *req)
 		application_name(root_app),
 		application_environment(root_app),
 		application_isdebug(root_app) ? "True" : "False",
-		application_uptime(root_app));
+		req->path,
+		req->query_string,
+		req->host,
+		req->agent,
+		http_remote_addr(req),
+		application_uptime(root_app),
+		application_request_count());
 
 	if (req->method != HTTP_METHOD_GET) {
 		http_response_header(req, "allow", "get");

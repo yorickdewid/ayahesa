@@ -125,6 +125,26 @@ http_basic_auth(struct http_request *request, const char *auth)
     return 0;
 }
 
+char *
+http_remote_addr(struct http_request *request)
+{
+	static char astr[INET6_ADDRSTRLEN];
+
+    switch (request->owner->addrtype) {
+        case AF_INET:
+            inet_ntop(AF_INET, &(request->owner->addr.ipv4.sin_addr), astr, INET_ADDRSTRLEN);
+            break;
+        case AF_INET6:
+            inet_ntop(AF_INET6, &(request->owner->addr.ipv6.sin6_addr), astr, INET6_ADDRSTRLEN);
+            break;
+        default:
+            return NULL;
+
+    }
+
+	return astr;
+}
+
 int
 jrpc_write_string(struct jsonrpc_request *req, void *ctx)
 {
