@@ -91,6 +91,11 @@
 		return jsonrpc_error(&request, ret, NULL); \
 	}
 
+#define jrpc_info(i) \
+	if (!strcmp(request.method, "info")) { \
+		return jsonrpc_result(&request, jrpc_write_string, i); \
+	}
+
 #define jrpc_return_error() \
 	return jsonrpc_error(&request, JSONRPC_METHOD_NOT_FOUND, NULL);
 

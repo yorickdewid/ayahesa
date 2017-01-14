@@ -10,23 +10,30 @@
 
 #include "../include/ayahesa.h"
 
-int		init(int);
+#define SERVLET_VERSION		"Kytarah/0.3"
+
+int		aya_init(int);
+int		aya_connect(struct connection *);
+void	aya_disconnect(struct connection *);
+
 int		about(struct http_request *);
 int		error(struct http_request *);
 int		status(struct http_request *);
 int		teapot(struct http_request *);
-int 	auth_basic(struct http_request *req);
+int		auth_basic(struct http_request *req);
 
 app_t *root_app = NULL;
 
 int
-init(int state)
+aya_init(int state)
 {
 	switch (state) {
 		case KORE_MODULE_LOAD:
+			kore_log(LOG_NOTICE, "server core " SERVLET_VERSION);
 			kore_log(LOG_NOTICE, "load ayahesa");
 			application_create(&root_app);
 			application_config(root_app, CONFIG);
+			http_server_version(SERVLET_VERSION);
 			// application_release(root_app);//TODO: FOR NOW!
 			break;
 		case KORE_MODULE_UNLOAD:
@@ -39,6 +46,25 @@ init(int state)
 	}
 
 	return (KORE_RESULT_OK);
+}
+
+int
+aya_connect(struct connection *c)
+{
+	c->proto = CONN_PROTO_HTTP;
+
+	net_recv_queue(c, http_header_max,
+            NETBUF_CALL_CB_ALWAYS, http_header_recv);
+
+	c->disconnect = aya_disconnect;
+
+	return (KORE_RESULT_OK);
+}
+
+void
+aya_disconnect(struct connection *c)
+{
+	
 }
 
 #if defined(STATUSPAGE)

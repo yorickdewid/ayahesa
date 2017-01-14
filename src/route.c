@@ -65,16 +65,14 @@ route(foo)
 }
 
 /*
- * JSON-RPC Endpoint
+ * JSON-RPC Application core endpoint
  */
 endpoint(core)
 {
 	jrpc_parse();
 
-	/* Return status OK */
-	if (!strcmp(request.method, "status")) {
-		return jsonrpc_result(&request, jrpc_write_string, "OK");
-	}
+	/* Endpoint info */
+	jrpc_info("Application core functions");
 
 	/* Call controller */
 	jrpc_invoke("echo", echo);
@@ -85,16 +83,14 @@ endpoint(core)
 }
 
 /*
- * JSON-RPC Endpoint
+ * JSON-RPC Auth endpoint
  */
 endpoint(auth)
 {
 	jrpc_parse();
 
-	/* Return status OK */
-	if (!strcmp(request.method, "status")) {
-		return jsonrpc_result(&request, jrpc_write_string, "OK");
-	}
+	/* Endpoint info */
+	jrpc_info("Authentication and authorization functions");
 
 	/* No method found */
 	jrpc_return_error();
