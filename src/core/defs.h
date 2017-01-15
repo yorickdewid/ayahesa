@@ -71,33 +71,33 @@
  */
 
 #define jrpc_invoke(m,f) \
-	if (!strcmp(request.method, m)) { \
-		extern int jrpc_method_##f(struct jsonrpc_request *request); \
-		return jrpc_method_##f(&request); \
+	if (!strcmp(_request.method, m)) { \
+		extern int jrpc_method_##f(struct jsonrpc_request *_request); \
+		return jrpc_method_##f(&_request); \
 	}
 
 #define endpoint(e) \
 	int endpoint_##e(struct http_request *); \
-    int endpoint_##e(struct http_request *_request) \
+    int endpoint_##e(struct http_request *request) \
 
 #define jrpc_parse() \
-	struct jsonrpc_request request; int ret; \
-	if (_request->method != HTTP_METHOD_POST && _request->method != HTTP_METHOD_PUT) { \
-		http_response_header(_request, "allow", "POST,PUT"); \
-		http_response(_request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
+	struct jsonrpc_request _request; int ret; \
+	if (request->method != HTTP_METHOD_POST && request->method != HTTP_METHOD_PUT) { \
+		http_response_header(request, "allow", "POST,PUT"); \
+		http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
 		return (KORE_RESULT_OK); \
 	} \
-	if ((ret = jsonrpc_read_request(_request, &request)) != 0) { \
-		return jsonrpc_error(&request, ret, NULL); \
+	if ((ret = jsonrpc_read_request(request, &_request)) != 0) { \
+		return jsonrpc_error(&_request, ret, NULL); \
 	}
 
 #define jrpc_info(i) \
-	if (!strcmp(request.method, "info")) { \
-		return jsonrpc_result(&request, jrpc_write_string, i); \
+	if (!strcmp(_request.method, "info")) { \
+		return jsonrpc_result(&_request, jrpc_write_string, i); \
 	}
 
 #define jrpc_return_error() \
-	return jsonrpc_error(&request, JSONRPC_METHOD_NOT_FOUND, NULL);
+	return jsonrpc_error(&_request, JSONRPC_METHOD_NOT_FOUND, NULL);
 
 #define jrpc_method(m) \
     int jrpc_method_##m(struct jsonrpc_request *); \

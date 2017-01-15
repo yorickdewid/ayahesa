@@ -16,13 +16,11 @@ window.onload = function() {
     console.log('WebSocket Error: ' + error);
   };
 
-
   // Show a connected message when the WebSocket is opened.
   socket.onopen = function(event) {
     socketStatus.innerHTML = 'Connected';
     socketStatus.className = 'open';
   };
-
 
   // Handle messages sent by the server.
   socket.onmessage = function(event) {
@@ -32,7 +30,6 @@ window.onload = function() {
     messagesList.scrollTop = messagesList.scrollHeight;
   };
 
-
   // Show a disconnected message when the WebSocket is closed.
   socket.onclose = function(event) {
     socketStatus.innerHTML = 'Disconnected';
@@ -41,7 +38,6 @@ window.onload = function() {
     sendBtn.disabled = true;
     closeBtn.disabled = true;
   };
-
 
   // Send a message when the form is submitted.
   form.onsubmit = function(e) {
@@ -66,7 +62,6 @@ window.onload = function() {
 
     return false;
   };
-
 
   // Close the WebSocket connection when the close button is clicked.
   closeBtn.onclick = function(e) {
