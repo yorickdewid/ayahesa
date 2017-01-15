@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>WebSockets Demo</title>
+
+	<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+	<div id="page-wrapper">
+		<h1>Messenger</h1>
+
+		<div id="status">Connecting...</div>
+
+		<ul id="messages"></ul>
+
+		<form id="message-form" action="#" method="post">
+			<input id="message" placeholder="Write your message here..." autocomplete="off" required />
+			<button type="submit" id="send">Send Message</button>
+			<button type="button" id="close">Leave</button>
+		</form>
+	</div>
+
+	<script src="/app.js"></script>
+</body>
+</html>

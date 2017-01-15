@@ -12,7 +12,5 @@
 #define _AYAHESA_UTIL_H_
 
 char *generate_instance_id(void);
-char *rstrip(char* s);
-char *lskip(char *s);
 
 #endif // _AYAHESA_UTIL_H_
