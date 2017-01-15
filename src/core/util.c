@@ -9,9 +9,9 @@
  */
 
 #include "../include/ayahesa.h"
-#include "base64.h"
 #include "util.h"
 
+#include <arpa/inet.h>
 #include <ctype.h>
 
 static int basic_auth_count = 0;
@@ -37,25 +37,6 @@ generate_instance_id(void)
     str[9] = '\0';
 
     return str;
-}
-
-/* Strip whitespace chars off end of given string, in place. Return s. */
-char *
-rstrip(char* s)
-{
-    char *p = s + strlen(s);
-    while (p > s && isspace((unsigned char)(*--p)))
-        *p = '\0';
-    return s;
-}
-
-/* Return pointer to first non-whitespace char in given string. */
-char *
-lskip(char *s)
-{
-    while (*s && isspace((unsigned char)(*s)))
-        s++;
-    return (char*)s;
 }
 
 const char *
@@ -91,7 +72,7 @@ http_get_cookie(struct http_request *request, const char *name)
 int
 http_basic_auth(struct http_request *request, const char *auth)
 {
-	char *header_auth = NULL;
+    char *header_auth = NULL;
 
     if (basic_auth_count >= 5) {
         sleep(5);
@@ -112,13 +93,12 @@ http_basic_auth(struct http_request *request, const char *auth)
 
     if (!strcmp(strtolower(method), "basic")) {
         char *code = strtok(NULL, " ");
-        char *undecode = (char *)base64_decode(code, strlen(code));
-        if (!strcmp(undecode, auth)) {
-            kore_free(undecode);
+        char *undecode = NULL;
+        size_t undecodelen;
+        kore_base64_decode(code, (u_int8_t **)&undecode, &undecodelen);
+        if (!strncmp(undecode, auth, undecodelen)) {
             return 1;
         }
-
-        kore_free(undecode);
     }
 
     basic_auth_count++;
@@ -128,7 +108,18 @@ http_basic_auth(struct http_request *request, const char *auth)
 char *
 http_remote_addr(struct http_request *request)
 {
-	static char astr[INET6_ADDRSTRLEN];
+    static char astr[INET6_ADDRSTRLEN];
+    char *real_ip = NULL;
+
+    http_request_header(request, "x-forwarded-for", &real_ip);
+	if (real_ip != NULL) {
+		return real_ip;
+    }
+
+    http_request_header(request, "x-real-ip", &real_ip);
+	if (real_ip != NULL) {
+		return real_ip;
+    }
 
     switch (request->owner->addrtype) {
         case AF_INET:
@@ -157,9 +148,10 @@ int
 jrpc_write_string_array_params(struct jsonrpc_request *req, void *ctx)
 {
 	int status = 0;
+    size_t i;
 
 	if (!YAJL_GEN_KO(status = yajl_gen_array_open(req->gen))) {
-		for (size_t i = 0; i < req->params->u.array.len; i++) {
+		for (i = 0; i < req->params->u.array.len; ++i) {
 			yajl_val yajl_str = req->params->u.array.values[i];
 			char	 *str = YAJL_GET_STRING(yajl_str);
 

@@ -10,6 +10,8 @@
 
 #include "../include/ayahesa.h"
 
+#include <time.h>
+
 #define SERVLET_VERSION		"Kytarah/0.3"
 
 int		aya_init(int);
@@ -88,18 +90,20 @@ status(struct http_request *req)
 		"<h1>Ayahesa Core</h1>"
 		"<table>"
 		"<tr><th colspan=\"2\">Application</th></tr>"
-		"<tr><td>Instance</td><td>%s</td></tr>"
 		"<tr><td>Application</td><td>%s</td></tr>"
 		"<tr><td>Environment</td><td>%s</td></tr>"
 		"<tr><td>Debug</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Environment</th></tr>"
+		"<tr><td>Method</td><td>%s</td></tr>"
 		"<tr><td>Path</td><td>%s</td></tr>"
 		"<tr><td>Query string</td><td>%s</td></tr>"
 		"<tr><td>Host</td><td>%s</td></tr>"
 		"<tr><td>Agent</td><td>%s</td></tr>"
 		"<tr><td>Remote</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Core</th></tr>"
+		"<tr><td>Instance</td><td>%s</td></tr>"
 		"<tr><td>Uptime</td><td>%s</td></tr>"
+		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Requests</td><td>%d</td></tr>"
 		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
 		"<tr><td>Servlet version</td><td>" SERVLET_VERSION "</td></tr>"
@@ -118,16 +122,18 @@ status(struct http_request *req)
 	memset(buffer, '\0', strlen(default_page) + 256);
 
 	sprintf(buffer, default_page,
-		application_instance(),
 		application_name(root_app),
 		application_environment(root_app),
 		application_isdebug(root_app) ? "True" : "False",
+		http_method_text(req->method),
 		req->path,
 		req->query_string,
 		req->host,
 		req->agent,
 		http_remote_addr(req),
+		application_instance(),
 		application_uptime(root_app),
+		kore_time_to_date(time(NULL)),
 		application_request_count());
 
 	if (req->method != HTTP_METHOD_GET) {

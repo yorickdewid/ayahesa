@@ -92,6 +92,9 @@ endpoint(auth)
 	/* Endpoint info */
 	jrpc_info("Authentication and authorization functions");
 
+	/* Call controller */
+	jrpc_invoke("authenticate", authenticate);
+
 	/* No method found */
 	jrpc_return_error();
 }

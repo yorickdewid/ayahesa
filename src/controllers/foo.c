@@ -18,15 +18,6 @@
  */
 controller(foo)
 {
-    if (request->host)
-        puts(request->host);
-    if (request->path)
-        puts(request->path);
-    if (request->agent)
-        puts(request->agent);
-    if (request->query_string)
-        puts(request->query_string);
-
     const char *cookie = http_get_cookie(request, "authsess");
 
 	http_response_header(request, "content-type", "text/html");
