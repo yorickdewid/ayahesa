@@ -19,4 +19,5 @@ pipelines:
           - make install
           - cd ..
           - kore -v
+          - kore flavor test
           - kore build

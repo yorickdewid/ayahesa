@@ -23,10 +23,17 @@
 
 #define VERSION "Ayahesa/0.4"
 #define CONFIG  "conf/framework.ini"
-#define STATUSPAGE
 
 #ifdef DEBUG
 # define STATUSPAGE
+#endif
+
+#ifdef TESTCASE
+# define STATUSPAGE
+#endif
+
+#ifdef STATUSPAGE
+# define STATUSPAGE_AUTH "eve:ABC@123"
 #endif
 
 #define T_FLAG_READONLY 0x1
