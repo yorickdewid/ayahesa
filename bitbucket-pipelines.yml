@@ -3,9 +3,20 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: gcc:6.1
+image: debian
 
 pipelines:
   default:
     - step:
         script:
+          - apt-get update
+          - apt-get install -y git gcc make
+          - apt-get install -y libyajl-dev libssl-dev
+          - git clone https://github.com/jorisvink/kore
+          - cd kore
+          - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\n/' Makefile
+          - make
+          - make install
+          - cd ..
+          - kore -v
+          - kore build
