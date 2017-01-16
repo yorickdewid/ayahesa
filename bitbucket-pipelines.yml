@@ -9,3 +9,5 @@ pipelines:
   default:
     - step:
         script:
+          - git clone https://github.com/jorisvink/kore
+          - ls -la
