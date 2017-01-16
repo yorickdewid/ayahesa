@@ -9,10 +9,10 @@ pipelines:
   default:
     - step:
         script:
+          - apt-get install libyajl-dev
           - git clone https://github.com/jorisvink/kore
           - cd kore
           - make
           - make install
           - cd ..
-          - apt-get install yajl
           - kore build
