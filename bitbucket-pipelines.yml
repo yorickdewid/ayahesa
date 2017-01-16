@@ -9,6 +9,7 @@ pipelines:
   default:
     - step:
         script:
+          - apt-get update
           - apt-get install -y gcc
           - apt-get install -y libyajl-dev
           - git clone https://github.com/jorisvink/kore
