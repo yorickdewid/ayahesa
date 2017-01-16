@@ -10,7 +10,7 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get install -y gcc
+          - apt-get install -y git gcc make
           - apt-get install -y libyajl-dev
           - git clone https://github.com/jorisvink/kore
           - cd kore
