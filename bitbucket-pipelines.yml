@@ -10,4 +10,6 @@ pipelines:
     - step:
         script:
           - git clone https://github.com/jorisvink/kore
-          - ls -la
+          - cd kore
+          - make
+          - make install
