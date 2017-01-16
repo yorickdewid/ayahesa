@@ -11,7 +11,7 @@ pipelines:
         script:
           - apt-get update
           - apt-get install -y git gcc make
-          - apt-get install -y libyajl-dev
+          - apt-get install -y libyajl-dev libssl-dev
           - git clone https://github.com/jorisvink/kore
           - cd kore
           - make
