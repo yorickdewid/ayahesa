@@ -14,4 +14,5 @@ pipelines:
           - make
           - make install
           - cd ..
+          - apt-get install yajl
           - kore build
