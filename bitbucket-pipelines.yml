@@ -13,3 +13,5 @@ pipelines:
           - cd kore
           - make
           - make install
+          - cd ..
+          - kore build
