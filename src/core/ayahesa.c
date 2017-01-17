@@ -18,11 +18,10 @@ int		aya_init(int);
 int		aya_connect(struct connection *);
 void	aya_disconnect(struct connection *);
 
-int		about(struct http_request *);
-int		error(struct http_request *);
 int		status(struct http_request *);
+int		shutdown_parent(struct http_request *);
+int		fox(struct http_request *);
 int		teapot(struct http_request *);
-int		auth_basic(struct http_request *req);
 
 app_t *root_app = NULL;
 
@@ -169,9 +168,18 @@ status(struct http_request *req)
 }
 
 int
-error(struct http_request *req)
+shutdown_parent(struct http_request *req)
 {
-	http_response(req, 500, NULL, 0);
+    kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
+	http_response(req, 435, NULL, 0);
+	return (KORE_RESULT_OK);
+}
+
+int
+fox(struct http_request *req)
+{
+	http_response_header(req, "content-type", "text/plain");
+	http_response(req, 419, "I'm a fox.", 10);
 	return (KORE_RESULT_OK);
 }
 
@@ -180,22 +188,6 @@ teapot(struct http_request *req)
 {
 	http_response_header(req, "content-type", "text/plain");
 	http_response(req, 418, "I'm a teapot.", 13);
-	return (KORE_RESULT_OK);
-}
-
-int
-auth_basic(struct http_request *req)
-{
-	char *auth = NULL;
-    http_request_header(req, "authorization", &auth);
-
-	if (auth != NULL) {
-		http_response(req, 200, NULL, 0);
-		return (KORE_RESULT_OK);
-	}
-
-	http_response_header(req, "www-authenticate", "Basic realm=\"User Visible Realm\"");
-	http_response(req, 401, NULL, 0);
 	return (KORE_RESULT_OK);
 }
 

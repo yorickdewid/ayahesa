@@ -107,6 +107,13 @@ load_config_tree(void *user, const char *section, const char *name, const char *
         return 1;
     }
 
+    /* Set instance name */
+    if (!strcmp(name, "instance")) {
+        kore_free(root_app->value.str);
+        root_app->value.str = kore_strdup(value);
+        return 1;
+    }
+
     /* Prefix section */
     size_t szc = strlen(section);
     if (szc) {
