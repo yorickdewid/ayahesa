@@ -14,19 +14,13 @@
 #include <openssl/hmac.h>
 #include <time.h>
 
-#include "../core/base64url.h"
+#include "base64url.h"
 
 #define TEST_JTI    "3713bf43-4490-42c5-855d-6563a2755ffe"
 
-char *jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience);
-
-char *
-jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience)
+static unsigned char *
+jwt_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
 {
-    /* Hard coded header */
-    char *header_encoded = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
-    size_t header_encoded_length = 36;
-
     yajl_gen jwt = yajl_gen_alloc(NULL);
 
     yajl_gen_map_open(jwt);
@@ -50,37 +44,62 @@ jwt_token_new(const char *key, const char *issuer, const char *subject, const ch
     yajl_gen_get_buf(jwt, &payload, &payload_len);
     
     /* String encode */
-    unsigned char *_payload_encoded = (unsigned char *)kore_malloc(((4 * payload_len) / 3 ) + 2);
-    size_t payload_encoded_length;
-    unsigned char *payload_encoded = base64url_encode(payload, payload_len, _payload_encoded, &payload_encoded_length);
+    unsigned char *payload_encoded = (unsigned char *)kore_calloc(((4 * payload_len) / 3 ) + 2, sizeof(unsigned char));
+    base64url_encode(payload, payload_len, payload_encoded, payload_encoded_length);
 
     yajl_gen_clear(jwt);
     yajl_gen_free(jwt);
 
-    /* Prepare signature input */
-    char *data = (char *)kore_malloc(header_encoded_length + 1 + payload_encoded_length + 1);
-    sprintf(data, "%s.%s", header_encoded, payload_encoded);
+    return payload_encoded;
+}
 
+static unsigned char *
+jwt_sign(const char *key, const char *data, size_t *signature_encoded_length)
+{
     unsigned int signature_len;
     unsigned char signature[EVP_MAX_MD_SIZE];
+
     HMAC(EVP_sha256(),
          (const unsigned char *)key, strlen(key),
          (const unsigned char *)data, strlen(data),
          signature, &signature_len);
 
+    /* Signature encode */
+    unsigned char *signature_encoded = (unsigned char *)kore_calloc(((4 * signature_len) / 3 ) + 2, sizeof(unsigned char));
+    base64url_encode(signature, signature_len, signature_encoded, signature_encoded_length);
+
+    return signature_encoded;
+}
+
+char *
+jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience)
+{
+    /* Hard coded header */
+    unsigned char *header_encoded = (unsigned char *)"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+    unsigned char *payload_encoded = NULL;
+    unsigned char *signature_encoded = NULL;
+    size_t header_encoded_length = 36;
+    size_t payload_encoded_length;
+    size_t signature_encoded_length;
+
+    /* Generate payload */
+    payload_encoded = jwt_payload(issuer, subject, audience, &payload_encoded_length);
+
+    /*
+     * Prepare signature input
+     * Generate signature over data
+     */
+    char *data = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1, sizeof(unsigned char));
+    sprintf(data, "%s.%s", header_encoded, payload_encoded);
+    signature_encoded = jwt_sign(key, data, &signature_encoded_length);
     kore_free(data);
 
-    /* Convert signature to base64 */
-    unsigned char *_signature_encoded = (unsigned char *)kore_malloc(((4 * signature_len) / 3 ) + 2);
-    size_t signature_encoded_length;
-    unsigned char *signature_encoded = base64url_encode(signature, signature_len, _signature_encoded, &signature_encoded_length);
-    signature_encoded[signature_encoded_length] = '\0';
-
-    char *token = (char *)kore_malloc(header_encoded_length + 1 + payload_encoded_length + 1 + signature_encoded_length + 1);
+    /* Concat parts */
+    char *token = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1 + signature_encoded_length + 1, sizeof(unsigned char));
     sprintf(token, "%s.%s.%s", header_encoded, payload_encoded, signature_encoded);
 
-    kore_free(_signature_encoded);
-    kore_free(_payload_encoded);
+    kore_free(signature_encoded);
+    kore_free(payload_encoded);
 
     return token;
 }

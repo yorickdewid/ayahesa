@@ -95,4 +95,6 @@ char *application_environment(app_t *);
 int jrpc_write_string(struct jsonrpc_request *, void *);
 int jrpc_write_string_array_params(struct jsonrpc_request *, void *);
 
+char *jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience);
+
 #endif // _AYAHESA_H_

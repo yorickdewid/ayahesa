@@ -13,8 +13,6 @@
 #define TEST_AUD    "E3C5M8I2"
 #define TEST_KEY    "secret"
 
-char *
-jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience);
 static int validate_claim(char *user, char *secret);
 
 /**
