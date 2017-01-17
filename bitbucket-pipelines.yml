@@ -15,8 +15,7 @@ pipelines:
           - git clone https://github.com/jorisvink/kore
           - cd kore
           - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\n/' Makefile
-          - make
-          - make install
+          - make && make install
           - cd ..
           - kore -v
           - kore flavor test

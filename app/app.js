@@ -7,6 +7,14 @@ window.onload = function() {
   var socketStatus = document.getElementById('status');
   var sendBtn = document.getElementById('send');
   var closeBtn = document.getElementById('close');
+  var userName = 'Guest';
+
+  // Set the timer
+  setInterval(function() {
+    if (socket.readyState == 1) {
+      socket.send(JSON.stringify({"msg":null}));
+    }
+  }, 30000);
 
   // Create a new WebSocket.
   var socket = new WebSocket('ws://' + window.location.hostname + ':8888/endpoint/msg/socket');
@@ -24,9 +32,13 @@ window.onload = function() {
 
   // Handle messages sent by the server.
   socket.onmessage = function(event) {
-    var message = event.data;
-    messagesList.innerHTML += '<li class="received"><span>Received:</span>' +
-                               message + '</li>';
+    if (event.data[0] != '{')
+      return;
+    var message = JSON.parse(event.data);
+    if (message.msg == null)
+      return;
+    messagesList.innerHTML += '<li class="received"><span>' + message.userName + ':</span>' +
+                               message.msg + '</li>';
     messagesList.scrollTop = messagesList.scrollHeight;
   };
 
@@ -48,12 +60,18 @@ window.onload = function() {
 
     // Retrieve the message from the textarea.
     var message = messageField.value;
+    if (message[0] == '/') {
+      var res = message.split(" ");
+      userName = res[1];
+      messageField.value = '';
+      return;
+    }
 
     // Send the message through the WebSocket.
-    socket.send(message);
+    socket.send(JSON.stringify({"userName":userName,"msg":message}));
 
     // Add the message to the messages list.
-    messagesList.innerHTML += '<li class="sent"><span>Sent:</span>' + message +
+    messagesList.innerHTML += '<li class="sent"><span>You:</span>' + message +
                               '</li>';
     messagesList.scrollTop = messagesList.scrollHeight;
 

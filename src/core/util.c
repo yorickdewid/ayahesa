@@ -75,7 +75,7 @@ http_basic_auth(struct http_request *request, const char *auth)
     char *header_auth = NULL;
 
     if (basic_auth_count >= 5) {
-        sleep(5);
+        sleep(2);
         basic_auth_count = 0;
     }
 
@@ -144,6 +144,7 @@ jrpc_write_string(struct jsonrpc_request *req, void *ctx)
 	return yajl_gen_string(req->gen, str, strlen((const char *)str));
 }
 
+//TODO: remove ?
 int
 jrpc_write_string_array_params(struct jsonrpc_request *req, void *ctx)
 {

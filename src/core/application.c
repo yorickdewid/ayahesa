@@ -13,6 +13,7 @@
 #include "tree.h"
 #include "ini.h"
 
+// #include <signal.h>
 #include <assert.h>
 #include <time.h>
 
@@ -165,6 +166,8 @@ application_config(app_t *app, const char *configfile)
 
     tree_dump(app->child.ptr[TREE_CONFIG]);
     tree_dump(app->child.ptr[TREE_CACHE]);
+
+    // kore_signal(SIGHUP);
 }
 
 /*

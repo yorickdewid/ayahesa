@@ -54,10 +54,9 @@ aya_connect(struct connection *c)
 {
 	c->proto = CONN_PROTO_HTTP;
 
-	net_recv_queue(c, http_header_max,
-            NETBUF_CALL_CB_ALWAYS, http_header_recv);
+	net_recv_queue(c, http_header_max, NETBUF_CALL_CB_ALWAYS, http_header_recv);
 
-	c->disconnect = aya_disconnect;
+	// c->disconnect = aya_disconnect;
 
 	application_prelude();
 
