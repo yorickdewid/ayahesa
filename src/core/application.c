@@ -89,14 +89,22 @@ load_config_tree(void *user, const char *section, const char *name, const char *
         }
     }
 
-    /* Redefine config */
+    /* Redefine debug */
     if (!strcmp(name, "debug")) {
         if (!strcmp(value, "true") || !strcmp(value, "1")) {
             config_put_int(app, "debug", 1);
-         } else {
+        } else {
             config_put_int(app, "debug", 0);
-         }
-         return 1;
+        }
+        return 1;
+    }
+
+    /* Redefine session time */
+    if (!strcmp(name, "app_session")) {
+        int err;
+        int time = kore_strtonum(value, 10, 60, 86400, &err);
+        config_put_int(app, "app_session", time);
+        return 1;
     }
 
     /* Prefix section */
@@ -166,8 +174,6 @@ application_config(app_t *app, const char *configfile)
 
     tree_dump(app->child.ptr[TREE_CONFIG]);
     tree_dump(app->child.ptr[TREE_CACHE]);
-
-    // kore_signal(SIGHUP);
 }
 
 /*
