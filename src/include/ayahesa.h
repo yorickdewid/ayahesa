@@ -33,7 +33,7 @@
 #endif
 
 #ifdef STATUSPAGE
-# define STATUSPAGE_AUTH "eve:ABC@123"
+# define STATUSPAGE_AUTH "eve:ABC@1239"
 #endif
 
 #define T_FLAG_READONLY 0x1

@@ -113,7 +113,28 @@ status(struct http_request *req)
 	/* Protect route with basic authentication */
 	if (!http_basic_auth(req, STATUSPAGE_AUTH)) {
 		http_response_header(req, "www-authenticate", "Basic realm=\"Status page\"");
-		http_response(req, 401, NULL, 0);
+		const char *error_page =
+			"<html>"
+			"<head>"
+			"<title>Ayahesa</title>"
+			"<style>"
+			"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
+			"th{background-color:#ed143d;color:#fff}"
+			"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
+			"tr:nth-child(even){background-color:#f1f1f1}"
+			"</style>"
+			"</head>"
+			"<body>"
+			"<h1>Authorization required</h1>"
+			"<table>"
+			"<tr><th colspan=\"2\">Details</th></tr>"
+			"<tr><td>Error</td><td>401</td></tr>"
+			"<tr><td>Message</td><td>Authorization required</td></tr>"
+			"</table>"
+			"</body>"
+			"</html>";
+
+		http_response(req, 401, error_page, strlen(error_page));
 		return (KORE_RESULT_OK);
 	}
 

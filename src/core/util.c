@@ -72,6 +72,8 @@ http_get_cookie(struct http_request *request, const char *name)
 int
 http_basic_auth(struct http_request *request, const char *auth)
 {
+    char *undecode = NULL;
+    size_t undecodelen;
     char *header_auth = NULL;
 
     if (basic_auth_count >= 5) {
@@ -93,12 +95,12 @@ http_basic_auth(struct http_request *request, const char *auth)
 
     if (!strcmp(strtolower(method), "basic")) {
         char *code = strtok(NULL, " ");
-        char *undecode = NULL;
-        size_t undecodelen;
+
         kore_base64_decode(code, (u_int8_t **)&undecode, &undecodelen);
-        if (!strncmp(undecode, auth, undecodelen)) {
+        if (undecodelen != strlen(auth))
+            return 0;
+        if (!strncmp(undecode, auth, undecodelen))
             return 1;
-        }
     }
 
     basic_auth_count++;
