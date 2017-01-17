@@ -13,7 +13,6 @@
 #include "tree.h"
 #include "ini.h"
 
-// #include <signal.h>
 #include <assert.h>
 #include <time.h>
 
@@ -93,6 +92,7 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     if (!strcmp(name, "debug")) {
         if (!strcmp(value, "true") || !strcmp(value, "1")) {
             config_put_int(app, "debug", 1);
+            kore_log(LOG_NOTICE, "application in debug mode");
         } else {
             config_put_int(app, "debug", 0);
         }
@@ -111,6 +111,7 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     if (!strcmp(name, "instance")) {
         kore_free(root_app->value.str);
         root_app->value.str = kore_strdup(value);
+        kore_log(LOG_NOTICE, "application instance %s", root_app->value.str);
         return 1;
     }
 
@@ -172,15 +173,16 @@ application_config(app_t *app, const char *configfile)
     assert(app != NULL);
 
     if (ini_parse(configfile, load_config_tree, (void *)app) < 0) {
-        printf("Framework configuration error: %s\n", configfile);
+        kore_log(LOG_ERR, "framework configuration error %s", configfile);
         abort();
     }
 
     /* Check and default config */
     validate_config(app);
 
-    tree_dump(app->child.ptr[TREE_CONFIG]);
-    tree_dump(app->child.ptr[TREE_CACHE]);
+    //TODO: remove
+    // tree_dump(app->child.ptr[TREE_CONFIG]);
+    // tree_dump(app->child.ptr[TREE_CACHE]);
 }
 
 /*
@@ -223,7 +225,6 @@ int
 application_isdebug(app_t *app)
 {
     int debug = 0;
-
     tree_get_int(app->child.ptr[TREE_CONFIG], "debug", &debug);
 
     return debug;
@@ -251,6 +252,40 @@ application_environment(app_t *app)
     tree_get_str(app->child.ptr[TREE_CONFIG], "app_env", &name);
 
     return name;
+}
+
+/*
+ * Application session lifetime in seconds
+ */
+int
+application_session_lifetime(app_t *app)
+{
+    int session_lifetime = 0;
+    tree_get_int(app->child.ptr[TREE_CONFIG], "app_session", &session_lifetime);
+
+    return session_lifetime;
+}
+
+/*
+ * Application domainname
+ */
+const char *
+application_domainname(app_t *app)
+{
+    static char domainname[128];
+    char *domain = NULL;
+
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app_domain", &domain);
+
+    if (domain == NULL)
+        return NULL;
+
+    strcpy(domainname, application_instance());
+    if (domain[0] != '.')
+        strcat(domainname,  ".");
+    strcat(domainname, domain);
+
+    return strtolower(domainname);
 }
 
 /*

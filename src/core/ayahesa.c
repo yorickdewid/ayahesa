@@ -90,6 +90,8 @@ status(struct http_request *req)
 		"<tr><th colspan=\"2\">Application</th></tr>"
 		"<tr><td>Application</td><td>%s</td></tr>"
 		"<tr><td>Environment</td><td>%s</td></tr>"
+		"<tr><td>Domain</td><td>%s</td></tr>"
+		"<tr><td>Session lifetime</td><td>%d</td></tr>"
 		"<tr><td>Debug</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Environment</th></tr>"
 		"<tr><td>Method</td><td>%s</td></tr>"
@@ -143,6 +145,8 @@ status(struct http_request *req)
 	sprintf(buffer, default_page,
 		application_name(root_app),
 		application_environment(root_app),
+		application_domainname(root_app),
+		application_session_lifetime(root_app),
 		application_isdebug(root_app) ? "True" : "False",
 		http_method_text(req->method),
 		req->path,
@@ -166,6 +170,10 @@ status(struct http_request *req)
 	kore_free(buffer);
 	return (KORE_RESULT_OK);
 }
+
+#endif // STATUSPAGE
+
+#if defined(OPT_ROUTES)
 
 int
 shutdown_parent(struct http_request *req)
@@ -191,6 +199,7 @@ teapot(struct http_request *req)
 	return (KORE_RESULT_OK);
 }
 
+#if 0
 int middleware_session(struct http_request *req, char *data);
 int
 middleware_session(struct http_request *req, char *data)
@@ -203,5 +212,6 @@ middleware_session(struct http_request *req, char *data)
 
 	return (KORE_RESULT_ERROR);
 }
+#endif
 
-#endif // DEBUG
+#endif // OPT_ROUTES

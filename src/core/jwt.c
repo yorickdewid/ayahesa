@@ -18,6 +18,12 @@
 
 #define TEST_JTI    "3713bf43-4490-42c5-855d-6563a2755ffe"
 
+struct jwt {
+    const char *iss;
+    const char *sub;
+    const char *aud;
+};
+
 static unsigned char *
 jwt_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
 {
@@ -33,7 +39,7 @@ jwt_payload(const char *issuer, const char *subject, const char *audience, size_
     yajl_gen_string(jwt, (const unsigned char *)"iat", 3);
     yajl_gen_integer(jwt, (long long int)time(NULL));
     yajl_gen_string(jwt, (const unsigned char *)"exp", 3);
-    yajl_gen_integer(jwt, (long long int)time(NULL) + 3600);
+    yajl_gen_integer(jwt, (long long int)time(NULL) + application_session_lifetime(root_app));
     yajl_gen_string(jwt, (const unsigned char *)"jti", 3);
     yajl_gen_string(jwt, (const unsigned char *)TEST_JTI, strlen(TEST_JTI));
     yajl_gen_map_close(jwt);
@@ -72,7 +78,7 @@ jwt_sign(const char *key, const char *data, size_t *signature_encoded_length)
 }
 
 char *
-jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience)
+jwt_token_new(const char *subject, const char *audience)
 {
     /* Hard coded header */
     unsigned char *header_encoded = (unsigned char *)"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
@@ -83,7 +89,7 @@ jwt_token_new(const char *key, const char *issuer, const char *subject, const ch
     size_t signature_encoded_length;
 
     /* Generate payload */
-    payload_encoded = jwt_payload(issuer, subject, audience, &payload_encoded_length);
+    payload_encoded = jwt_payload(application_domainname(root_app), subject, audience, &payload_encoded_length);
 
     /*
      * Prepare signature input
@@ -91,7 +97,7 @@ jwt_token_new(const char *key, const char *issuer, const char *subject, const ch
      */
     char *data = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1, sizeof(unsigned char));
     sprintf(data, "%s.%s", header_encoded, payload_encoded);
-    signature_encoded = jwt_sign(key, data, &signature_encoded_length);
+    signature_encoded = jwt_sign("ABC@123", data, &signature_encoded_length);
     kore_free(data);
 
     /* Concat parts */

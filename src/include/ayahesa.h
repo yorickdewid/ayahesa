@@ -21,15 +21,17 @@
 #include <kore/http.h>
 #include <kore/jsonrpc.h>
 
-#define VERSION "Ayahesa/0.4"
+#define VERSION "Ayahesa/0.5"
 #define CONFIG  "conf/framework.ini"
 
 #ifdef DEBUG
 # define STATUSPAGE
+# define OPT_ROUTES
 #endif
 
 #ifdef TESTCASE
 # define STATUSPAGE
+# define OPT_ROUTES
 #endif
 
 #ifdef STATUSPAGE
@@ -91,10 +93,12 @@ unsigned int application_request_count(void);
 int application_isdebug(app_t *);
 char *application_name(app_t *);
 char *application_environment(app_t *);
+int application_session_lifetime(app_t *);
+const char *application_domainname(app_t *app);
 
 int jrpc_write_string(struct jsonrpc_request *, void *);
 int jrpc_write_string_array_params(struct jsonrpc_request *, void *);
 
-char *jwt_token_new(const char *key, const char *issuer, const char *subject, const char *audience);
+char *jwt_token_new(const char *subject, const char *audience);
 
 #endif // _AYAHESA_H_

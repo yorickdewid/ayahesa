@@ -48,7 +48,6 @@ route(main)
 	http_get();
 
 	http_response_header(request, "content-type", "text/html");
-	http_response_header(request, "set-cookie", "_umaysess=3745693");
 	http_response(request, 200, default_page, strlen(default_page));
 
 	/* We're good */
@@ -62,6 +61,9 @@ route(main)
  */
 route(foo)
 {
+    /* Only accept GET requests */
+	http_get();
+
     invoke(foo);
 
 	/* We're good */

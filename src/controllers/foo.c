@@ -18,18 +18,11 @@
  */
 controller(foo)
 {
-    // kore_signal(SIGHUP);
-    // abort();
-    // return_ok();
+    const char *cookie = http_get_cookie(request, "track");
+    if (cookie == NULL)
+        http_response_header(request, "set-cookie", "track=1");
 
-    kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
-
-//    const char *cookie = http_get_cookie(request, "authsess");
-
-	//http_response_header(request, "content-type", "text/html");
-//    if (cookie == NULL)
-//	    http_response_header(request, "set-cookie", "authsess=dyfgyasdfwegfgwegrfw4i");
-
+    http_response_header(request, "content-type", "text/html");
 	http_response(request, 200, NULL, 0);
 
     return_ok();

@@ -11,6 +11,7 @@
 #include "../include/ayahesa.h"
 #include "util.h"
 
+#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 

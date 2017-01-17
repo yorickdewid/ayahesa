@@ -10,8 +10,9 @@
 
 #include <ayahesa.h>
 
-#define TEST_AUD    "E3C5M8I2"
-#define TEST_KEY    "secret"
+#include "module.h"
+
+#define TEST_AUD    MOD_MESSAGE MOD_PROJECTMGT MOD_OBJECTLIB
 
 static int validate_claim(char *user, char *secret);
 
@@ -51,7 +52,7 @@ jrpc_method(authenticate)
     if (!validate_claim(YAJL_GET_STRING(obj_user), YAJL_GET_STRING(obj_secret)))
         return jsonrpc_error(request, -4, "Authentication failed");
 
-    char *token = jwt_token_new(TEST_KEY, "quenza.net", YAJL_GET_STRING(obj_user), TEST_AUD);
+    char *token = jwt_token_new(YAJL_GET_STRING(obj_user), TEST_AUD);
     int ret = jsonrpc_result(request, jrpc_write_string, token);
     kore_free(token);
 
