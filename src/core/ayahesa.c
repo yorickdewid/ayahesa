@@ -76,7 +76,7 @@ status(struct http_request *req)
 	const char *default_page =
 		"<html>"
 		"<head>"
-		"<title>Ayahesa</title>"
+		"<title>Ayahesa Core</title>"
 		"<style>"
 		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%%}"
 		"th{background-color:#9370db;color:#fff}"
@@ -139,10 +139,10 @@ status(struct http_request *req)
 		return (KORE_RESULT_OK);
 	}
 
-	char *buffer = (char *)kore_malloc(strlen(default_page) + 256);
-	memset(buffer, '\0', strlen(default_page) + 256);
-
-	sprintf(buffer, default_page,
+	size_t default_page_length = strlen(default_page) + 512;
+	char *buffer = (char *)kore_calloc(default_page_length, sizeof(char));
+	snprintf(buffer, default_page_length,
+		default_page,
 		application_name(root_app),
 		application_environment(root_app),
 		application_domainname(root_app),

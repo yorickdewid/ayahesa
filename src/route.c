@@ -38,7 +38,7 @@ route(main)
 {
 	const char *default_page = 
 		"<html>"
-		"<head><title>Welcome</title></head>"
+		"<head><title>Welcome to Ayahesa</title></head>"
 		"<body>"
 		"<h1>Welcome to Ayahesa</h1>"
 		"</body>"
@@ -65,6 +65,19 @@ route(foo)
 	http_get();
 
     invoke(foo);
+
+	/* We're good */
+	return_ok();
+}
+
+/*
+ * Handle request in controller
+ *
+ * Controller: resource
+ */
+route(resource)
+{
+    // invoke(resource);
 
 	/* We're good */
 	return_ok();
