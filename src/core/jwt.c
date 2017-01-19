@@ -16,7 +16,7 @@
 
 #include "base64url.h"
 
-#define TEST_JTI    "3713bf43-4490-42c5-855d-6563a2755ffe"
+#define TEST_JTI    "00000000-0000-0000-0000-000000000000"
 
 struct jwt {
     const char *iss;
@@ -60,13 +60,13 @@ jwt_payload(const char *issuer, const char *subject, const char *audience, size_
 }
 
 static unsigned char *
-jwt_sign(const char *key, const char *data, size_t *signature_encoded_length)
+jwt_sign(char *key, size_t key_length, const char *data, size_t *signature_encoded_length)
 {
     unsigned int signature_len;
     unsigned char signature[EVP_MAX_MD_SIZE];
 
     HMAC(EVP_sha256(),
-         (const unsigned char *)key, strlen(key),
+         (const unsigned char *)key, key_length,
          (const unsigned char *)data, strlen(data),
          signature, &signature_len);
 
@@ -88,6 +88,12 @@ jwt_token_new(const char *subject, const char *audience)
     size_t payload_encoded_length;
     size_t signature_encoded_length;
 
+    char *rawkey = NULL;
+    size_t rawkey_len;
+
+    char *key = application_key(root_app);
+    kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
+
     /* Generate payload */
     payload_encoded = jwt_payload(application_domainname(root_app), subject, audience, &payload_encoded_length);
 
@@ -97,7 +103,7 @@ jwt_token_new(const char *subject, const char *audience)
      */
     char *data = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1, sizeof(unsigned char));
     sprintf(data, "%s.%s", header_encoded, payload_encoded);
-    signature_encoded = jwt_sign("ABC@123", data, &signature_encoded_length);
+    signature_encoded = jwt_sign(rawkey, rawkey_len, data, &signature_encoded_length);
     kore_free(data);
 
     /* Concat parts */
@@ -108,4 +114,47 @@ jwt_token_new(const char *subject, const char *audience)
     kore_free(payload_encoded);
 
     return token;
+}
+
+int
+jwt_verify(char *token)
+{
+    unsigned char *signature_encoded = NULL;
+    size_t signature_encoded_length;
+
+    /* Return if no JSON object */
+    if (token[0] != 'e' || token[1] != 'y')
+        return 0;
+
+    char *parts[4];
+    kore_split_string(token, ".", parts, 4);
+
+    /* Sanity check */
+    if (parts[0] == NULL || parts[1] == NULL || parts[2] == NULL)
+        return 0;
+
+    /* Header must match */
+    if (strcmp(parts[0], "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"))
+        return 0;
+
+    char *rawkey = NULL;
+    size_t rawkey_len;
+
+    char *key = application_key(root_app);
+    kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
+
+    /* Calculate hash over incomming token */
+    char *data = (char *)kore_calloc(strlen(parts[0]) + 1 + strlen(parts[1]) + 1, sizeof(char));
+    sprintf(data, "%s.%s", parts[0], parts[1]);
+    signature_encoded = jwt_sign(rawkey, rawkey_len, data, &signature_encoded_length);
+    kore_free(data);
+
+    /* Compare incomming hash against caculated hash */
+    if (!strcmp((const char *)parts[2], (const char *)signature_encoded)) {
+        kore_free(signature_encoded);
+        return 1;
+    }
+
+    kore_free(signature_encoded);
+    return 0;
 }

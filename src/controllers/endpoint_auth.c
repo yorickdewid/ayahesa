@@ -62,7 +62,7 @@ jrpc_method(authenticate)
 /* Validate user claim, return 0 on success */
 static int
 validate_claim(char *user, char *secret) {
-    if (!strcmp(user, "woei") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
+    if (!strcmp(user, "woei@quenza.net") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
         return 1;
 
     return 0;

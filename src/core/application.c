@@ -267,6 +267,18 @@ application_session_lifetime(app_t *app)
 }
 
 /*
+ * Application key
+ */
+char *
+application_key(app_t *app)
+{
+    char *app_key = NULL;
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app_key", &app_key);
+
+    return app_key;
+}
+
+/*
  * Application domainname
  */
 const char *

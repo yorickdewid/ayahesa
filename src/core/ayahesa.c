@@ -45,7 +45,7 @@ aya_init(int state)
 			break;
 	}
 
-	return (KORE_RESULT_OK);
+	return KORE_RESULT_OK;
 }
 
 int
@@ -59,7 +59,7 @@ aya_connect(struct connection *c)
 
 	application_prelude();
 
-	return (KORE_RESULT_OK);
+	return KORE_RESULT_OK;
 }
 
 void
@@ -90,7 +90,6 @@ status(struct http_request *req)
 		"<tr><th colspan=\"2\">Application</th></tr>"
 		"<tr><td>Application</td><td>%s</td></tr>"
 		"<tr><td>Environment</td><td>%s</td></tr>"
-		"<tr><td>Domain</td><td>%s</td></tr>"
 		"<tr><td>Session lifetime</td><td>%d</td></tr>"
 		"<tr><td>Debug</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Environment</th></tr>"
@@ -102,6 +101,7 @@ status(struct http_request *req)
 		"<tr><td>Remote</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Core</th></tr>"
 		"<tr><td>Instance</td><td>%s</td></tr>"
+		"<tr><td>Domain</td><td>%s</td></tr>"
 		"<tr><td>Uptime</td><td>%s</td></tr>"
 		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Requests</td><td>%d</td></tr>"
@@ -136,7 +136,7 @@ status(struct http_request *req)
 			"</html>";
 
 		http_response(req, 401, error_page, strlen(error_page));
-		return (KORE_RESULT_OK);
+		return KORE_RESULT_OK;
 	}
 
 	size_t default_page_length = strlen(default_page) + 512;
@@ -145,7 +145,6 @@ status(struct http_request *req)
 		default_page,
 		application_name(root_app),
 		application_environment(root_app),
-		application_domainname(root_app),
 		application_session_lifetime(root_app),
 		application_isdebug(root_app) ? "True" : "False",
 		http_method_text(req->method),
@@ -155,6 +154,7 @@ status(struct http_request *req)
 		req->agent,
 		http_remote_addr(req),
 		application_instance(),
+		application_domainname(root_app),
 		application_uptime(root_app),
 		kore_time_to_date(time(NULL)),
 		application_request_count());
@@ -168,7 +168,7 @@ status(struct http_request *req)
 	http_response_header(req, "content-type", "text/html");
 	http_response(req, 200, buffer, strlen(buffer));
 	kore_free(buffer);
-	return (KORE_RESULT_OK);
+	return KORE_RESULT_OK;
 }
 
 #endif // STATUSPAGE
@@ -180,7 +180,7 @@ shutdown_parent(struct http_request *req)
 {
     kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
 	http_response(req, 435, NULL, 0);
-	return (KORE_RESULT_OK);
+	return KORE_RESULT_OK;
 }
 
 int
@@ -188,7 +188,7 @@ fox(struct http_request *req)
 {
 	http_response_header(req, "content-type", "text/plain");
 	http_response(req, 419, "I'm a fox.", 10);
-	return (KORE_RESULT_OK);
+	return KORE_RESULT_OK;
 }
 
 int
@@ -196,22 +196,27 @@ teapot(struct http_request *req)
 {
 	http_response_header(req, "content-type", "text/plain");
 	http_response(req, 418, "I'm a teapot.", 13);
-	return (KORE_RESULT_OK);
+	return KORE_RESULT_OK;
 }
 
-#if 0
 int middleware_session(struct http_request *req, char *data);
 int
 middleware_session(struct http_request *req, char *data)
 {
-	//kore_log(LOG_NOTICE, "middleware_session: %s", data);
-	printf("middleware_session: %s\n", data);
+    char *method = strtok(data, " ");
+    if (method == NULL)
+        return KORE_RESULT_ERROR;
 
-	if (!strcmp(data, "ABC@123"))
-		return (KORE_RESULT_OK);
+	/* Require bearer authentication */
+    if (!strcmp(strtolower(method), "bearer")) {
+        char *token = strtok(NULL, " ");
 
-	return (KORE_RESULT_ERROR);
+		/* Verify token */
+		if (jwt_verify(token))
+			return KORE_RESULT_OK;
+    }
+
+	return KORE_RESULT_ERROR;
 }
-#endif
 
 #endif // OPT_ROUTES

@@ -95,10 +95,12 @@ char *application_name(app_t *);
 char *application_environment(app_t *);
 int application_session_lifetime(app_t *);
 const char *application_domainname(app_t *app);
+char *application_key(app_t *app);
 
 int jrpc_write_string(struct jsonrpc_request *, void *);
 int jrpc_write_string_array_params(struct jsonrpc_request *, void *);
 
 char *jwt_token_new(const char *subject, const char *audience);
+int jwt_verify(char *token);
 
 #endif // _AYAHESA_H_

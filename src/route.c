@@ -77,7 +77,7 @@ route(foo)
  */
 route(resource)
 {
-    // invoke(resource);
+    invoke(resource);
 
 	/* We're good */
 	return_ok();
