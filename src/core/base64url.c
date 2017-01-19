@@ -140,6 +140,5 @@ void base64url_decode(const unsigned char *data, size_t data_len, unsigned char 
 		size_t B = unb64[data[charNo + 1]];
 
 		result[cb++] = (A << 2) | (B >> 4);
-
 	}
 }

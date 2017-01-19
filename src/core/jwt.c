@@ -25,7 +25,7 @@ struct jwt {
 };
 
 static unsigned char *
-jwt_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
+jwt_generate_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
 {
     yajl_gen jwt = yajl_gen_alloc(NULL);
 
@@ -95,7 +95,7 @@ jwt_token_new(const char *subject, const char *audience)
     kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
 
     /* Generate payload */
-    payload_encoded = jwt_payload(application_domainname(root_app), subject, audience, &payload_encoded_length);
+    payload_encoded = jwt_generate_payload(application_domainname(root_app), subject, audience, &payload_encoded_length);
 
     /*
      * Prepare signature input
@@ -150,11 +150,30 @@ jwt_verify(char *token)
     kore_free(data);
 
     /* Compare incomming hash against caculated hash */
-    if (!strcmp((const char *)parts[2], (const char *)signature_encoded)) {
+    if (strcmp((const char *)parts[2], (const char *)signature_encoded)) {
         kore_free(signature_encoded);
-        return 1;
+        return 0;
     }
 
+    size_t payload_len;
+    unsigned char *payload = (unsigned char *)kore_calloc(((3 * strlen(parts[1])) / 4 ) + 1, sizeof(unsigned char));
+    base64url_decode((const unsigned char *)parts[1], strlen(parts[1]), payload, &payload_len);
+    payload[payload_len] = '\0';
+
+    const char *path_exp[] = {"exp", NULL};
+
+    yajl_val jwt = yajl_tree_parse((const char *)payload, NULL, 0);
+    yajl_val obj_expire = yajl_tree_get(jwt, path_exp, yajl_t_number);
+
+    if ((long long int)time(NULL) > YAJL_GET_INTEGER(obj_expire)) {
+        yajl_tree_free(jwt);
+        kore_free(payload);
+        kore_free(signature_encoded);
+        return 0;
+    }
+
+    yajl_tree_free(jwt);
+    kore_free(payload);
     kore_free(signature_encoded);
-    return 0;
+    return 1;
 }
