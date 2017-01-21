@@ -22,6 +22,8 @@ struct jwt {
     const char *iss;
     const char *sub;
     const char *aud;
+    long long int iat;
+    long long int exp;
 };
 
 static unsigned char *
@@ -160,11 +162,23 @@ jwt_verify(char *token)
     base64url_decode((const unsigned char *)parts[1], strlen(parts[1]), payload, &payload_len);
     payload[payload_len] = '\0';
 
+    const char *path_iat[] = {"iat", NULL};
     const char *path_exp[] = {"exp", NULL};
 
     yajl_val jwt = yajl_tree_parse((const char *)payload, NULL, 0);
+    yajl_val obj_issued = yajl_tree_get(jwt, path_iat, yajl_t_number);
     yajl_val obj_expire = yajl_tree_get(jwt, path_exp, yajl_t_number);
 
+    /* Token not yet active */
+    if ((long long int)time(NULL) < YAJL_GET_INTEGER(obj_issued)) {
+        puts("NOT YET");
+        yajl_tree_free(jwt);
+        kore_free(payload);
+        kore_free(signature_encoded);
+        return 0;
+    }
+
+    /* Token expired */
     if ((long long int)time(NULL) > YAJL_GET_INTEGER(obj_expire)) {
         yajl_tree_free(jwt);
         kore_free(payload);
