@@ -81,9 +81,9 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     app_t *app = (app_t *)user;
 
     /* Config item must have string value */
-    if (!strcmp(name, "app_name") || !strcmp(name, "app_env") || !strcmp(name, "app_key")) {
+    if (!strcmp(section, "app")) {
         if (!strlen(value)) {
-            printf("Config item starting with 'app_' cannot be empty (line:%d)\n", lineno);
+            printf("Config item in '[app]' cannot be empty (line:%d)\n", lineno);
             abort();
         }
     }
@@ -100,10 +100,10 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     }
 
     /* Redefine session time */
-    if (!strcmp(name, "app_session")) {
+    if (!strcmp(section, "app") && !strcmp(name, "session")) {
         int err;
         int time = kore_strtonum(value, 10, 60, 86400, &err);
-        config_put_int(app, "app_session", time);
+        config_put_int(app, "app.session", time);
         return 1;
     }
 
@@ -136,26 +136,26 @@ load_config_tree(void *user, const char *section, const char *name, const char *
 static void
 validate_config(app_t *app)
 {
-    int has_name = tree_contains(app->child.ptr[TREE_CONFIG], "app_name");
-    int has_env = tree_contains(app->child.ptr[TREE_CONFIG], "app_env");
-    int has_key = tree_contains(app->child.ptr[TREE_CONFIG], "app_key");
+    int has_name = tree_contains(app->child.ptr[TREE_CONFIG], "app.name");
+    int has_env = tree_contains(app->child.ptr[TREE_CONFIG], "app.env");
+    int has_key = tree_contains(app->child.ptr[TREE_CONFIG], "app.key");
     int has_debug = tree_contains(app->child.ptr[TREE_CONFIG], "debug");
 
     /* No app_name */
     if (!has_name) {
-        puts("'app_name' cannot be empty");
+        kore_log(LOG_ERR, "'app.name' must be set");
         abort();
     }
 
     /* No app_env */
     if (!has_env) {
-        puts("'app_env' cannot be empty");
+        kore_log(LOG_ERR, "'app.env' must be set");
         abort();
     }
 
     /* No app_key */
     if (!has_key) {
-        puts("'app_key' cannot be empty");
+        kore_log(LOG_ERR, "'app.key' must be set");
         abort();
     }
 
@@ -237,7 +237,7 @@ char *
 application_name(app_t *app)
 {
     char *name = NULL;
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app_name", &name);
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app.name", &name);
 
     return name;
 }
@@ -249,7 +249,7 @@ char *
 application_environment(app_t *app)
 {
     char *name = NULL;
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app_env", &name);
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app.env", &name);
 
     return name;
 }
@@ -261,7 +261,7 @@ int
 application_session_lifetime(app_t *app)
 {
     int session_lifetime = 0;
-    tree_get_int(app->child.ptr[TREE_CONFIG], "app_session", &session_lifetime);
+    tree_get_int(app->child.ptr[TREE_CONFIG], "app.session", &session_lifetime);
 
     return session_lifetime;
 }
@@ -273,7 +273,7 @@ char *
 application_key(app_t *app)
 {
     char *app_key = NULL;
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app_key", &app_key);
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app.key", &app_key);
 
     return app_key;
 }
@@ -287,7 +287,7 @@ application_domainname(app_t *app)
     static char domainname[128];
     char *domain = NULL;
 
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app_domain", &domain);
+    tree_get_str(app->child.ptr[TREE_CONFIG], "app.domain", &domain);
 
     if (domain == NULL)
         return NULL;
@@ -312,5 +312,5 @@ application_release(app_t *app)
     /* Traverse tree and free pointers */
     tree_free(app);
 
-    kore_free((void *)app);
+    kore_free(app);
 }

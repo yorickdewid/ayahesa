@@ -18,12 +18,14 @@ int						aya_init(int);
 int						aya_connect(struct connection *);
 static unsigned char *	aya_report(int code, char *title, size_t *length);
 
-int		notfound(struct http_request *req);
+int						notfound(struct http_request *req);
 
+/* Framework status page */
 #if defined(STATUSPAGE)
 int		status(struct http_request *);
 #endif // STATUSPAGE
 
+/* Optional framework routes */
 #if defined(OPT_ROUTES)
 int		shutdown_parent(struct http_request *);
 int		fox(struct http_request *);
@@ -70,7 +72,7 @@ aya_connect(struct connection *c)
 unsigned char *
 aya_report(int code, char *title, size_t *length)
 {
-	const char *default_report =
+	static const char *default_report =
 		"<html>"
 		"<head>"
 		"<title>Ayahesa Report</title>"

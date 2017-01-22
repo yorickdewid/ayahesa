@@ -8,12 +8,7 @@
  * permission of the author.
  */
 
-#define MOD_MESSAGE       "M2"
-#define MOD_MARKET        "M5"
-#define MOD_REPORT        "R3"
-#define MOD_SUPPORT       "S1"
-#define MOD_CRM           "C1"
-#define MOD_CALCULATIE    "C2"
-#define MOD_CAMPAGNEMGT   "C3"
-#define MOD_PROJECTMGT    "P3"
-#define MOD_OBJECTLIB     "O4"
+#define MOD_MODULE1       "M2"
+#define MOD_MODULE2        "M5"
+#define MOD_MODULE3        "R3"
+#define MOD_MODULE4       "S1"

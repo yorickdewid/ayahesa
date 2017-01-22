@@ -21,6 +21,9 @@
 #define return_ok() \
 	return (KORE_RESULT_OK); 
 
+#define return_error() \
+	return (KORE_RESULT_ERROR); 
+
 #define http_get() \
 	if (request->method != HTTP_METHOD_GET) { \
 		http_response_header(request, "allow", "GET"); \

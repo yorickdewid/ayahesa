@@ -12,7 +12,10 @@
 
 #include "module.h"
 
-#define TEST_AUD    MOD_MESSAGE MOD_PROJECTMGT MOD_OBJECTLIB
+#define TEST_AUD \
+    MOD_MODULE1 \
+    MOD_MODULE3 \
+    MOD_MODULE4
 
 static int validate_claim(char *user, char *secret);
 
@@ -34,9 +37,6 @@ jrpc_method(authenticate)
 
         obj_user = yajl_tree_get(request->params, path_user, yajl_t_string);
         obj_secret = yajl_tree_get(request->params, path_secret, yajl_t_string);
-        
-        // printf("Principal: %s\n", YAJL_GET_STRING(obj_user));
-        // printf("Secret: %s\n", YAJL_GET_STRING(obj_secret));
     } else {
         jsonrpc_log(request, LOG_ERR, "Authentication requires named parameters");
         return jsonrpc_error(request, JSONRPC_INVALID_PARAMS, NULL);
