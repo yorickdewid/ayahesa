@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <time.h>
 
 static int basic_auth_count = 0;
 
@@ -139,33 +140,51 @@ http_remote_addr(struct http_request *request)
 	return astr;
 }
 
+char *
+http_report(int code, char *title, size_t *length)
+{
+	struct kore_buf		*buffer;
+	char 				strcode[4];
+	char 				*strtime;
+
+	static const char *default_report =
+		"<html>"
+		"<head>"
+		"<title>Ayahesa Report</title>"
+		"<style>"
+		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
+		"th{background-color:#ed143d;color:#fff}"
+		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
+		"tr:nth-child(even){background-color:#f1f1f1}"
+		"</style>"
+		"</head>"
+		"<body>"
+		"<h1>$title$</h1>"
+		"<table>"
+		"<tr><th colspan=\"2\">Ayahesa report details</th></tr>"
+		"<tr><td>Code</td><td>$code$</td></tr>"
+		"<tr><td>Message</td><td>$title$</td></tr>"
+		"<tr><td>Occurrence</td><td>$time$</td></tr>"
+		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
+		"</table>"
+		"</body>"
+		"</html>";
+
+	snprintf(strcode, 4, "%d", code);
+	strtime = kore_time_to_date(time(NULL)),
+
+	buffer = kore_buf_alloc(strlen(default_report));
+	kore_buf_append(buffer, default_report, strlen(default_report));
+	kore_buf_replace_string(buffer, "$title$", title, strlen(title));
+	kore_buf_replace_string(buffer, "$code$", strcode, 3);
+	kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
+	return (char *)kore_buf_release(buffer, length);
+}
+
 int
 jrpc_write_string(struct jsonrpc_request *req, void *ctx)
 {
 	const unsigned char *str = (unsigned char *)ctx;
 
 	return yajl_gen_string(req->gen, str, strlen((const char *)str));
-}
-
-//TODO: remove ?
-int
-jrpc_write_string_array_params(struct jsonrpc_request *req, void *ctx)
-{
-	int status = 0;
-    size_t i;
-
-	if (!YAJL_GEN_KO(status = yajl_gen_array_open(req->gen))) {
-		for (i = 0; i < req->params->u.array.len; ++i) {
-			yajl_val yajl_str = req->params->u.array.values[i];
-			char	 *str = YAJL_GET_STRING(yajl_str);
-
-			if (YAJL_GEN_KO(status = yajl_gen_string(req->gen,
-			    (unsigned char *)str, strlen(str))))
-				break;
-		}
-		if (status == 0)
-			status = yajl_gen_array_close(req->gen);
-	}
-
-	return status;
 }

@@ -36,6 +36,8 @@ jwt_generate_payload(const char *issuer, const char *subject, const char *audien
     yajl_gen_string(jwt, (const unsigned char *)issuer, strlen(issuer));
     yajl_gen_string(jwt, (const unsigned char *)"sub", 3);
     yajl_gen_string(jwt, (const unsigned char *)subject, strlen(subject));
+    yajl_gen_string(jwt, (const unsigned char *)"oid", 3);
+    yajl_gen_string(jwt, (const unsigned char *)"10017", 5);
     yajl_gen_string(jwt, (const unsigned char *)"aud", 3);
     yajl_gen_string(jwt, (const unsigned char *)audience, strlen(audience));
     yajl_gen_string(jwt, (const unsigned char *)"iat", 3);

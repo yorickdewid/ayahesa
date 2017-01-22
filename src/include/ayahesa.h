@@ -76,30 +76,39 @@ typedef struct app_tree app_t;
 /* Core root definition */
 extern app_t *root_app;
 
-/*
- * Prototypes
- */
-const char *http_get_cookie(struct http_request *, const char *);
-int http_basic_auth(struct http_request *, const char *);
-char *http_remote_addr(struct http_request *);
-
 void application_create(app_t **);
 void application_config(app_t *, const char *);
 void application_release(app_t *);
 void application_prelude(struct connection *);
 
-char *application_uptime(app_t *);
-unsigned int application_request_count(void);
-int application_isdebug(app_t *);
-char *application_name(app_t *);
-char *application_environment(app_t *);
-int application_session_lifetime(app_t *);
-const char *application_domainname(app_t *app);
-char *application_key(app_t *app);
+/*
+ * Application operations
+ */
+char *          application_uptime(app_t *);
+unsigned int    application_request_count(void);
+int             application_isdebug(app_t *);
+char *          application_name(app_t *);
+char *          application_environment(app_t *);
+int             application_session_lifetime(app_t *);
+const char *    application_domainname(app_t *app);
+char *          application_key(app_t *app);
 
+/*
+ * HTTP helpers
+ */
+const char *    http_get_cookie(struct http_request *, const char *);
+int             http_basic_auth(struct http_request *, const char *);
+char *          http_remote_addr(struct http_request *);
+char *          http_report(int code, char *title, size_t *length);
+
+/*
+ * JRPC helpers
+ */
 int jrpc_write_string(struct jsonrpc_request *, void *);
-int jrpc_write_string_array_params(struct jsonrpc_request *, void *);
 
+/*
+ * JWT operations
+ */
 char *jwt_token_new(const char *subject, const char *audience);
 int jwt_verify(char *token);
 

@@ -77,6 +77,9 @@ route(cookie)
  */
 route(resource)
 {
+	/* Only accept GET requests */
+	http_get();
+
     invoke(resource);
 
 	/* We're good */

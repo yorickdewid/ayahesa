@@ -16,20 +16,19 @@
 
 int					aya_init(int);
 int					aya_connect(struct connection *);
-static char *		aya_report(int code, char *title, size_t *length);
 
 int					notfound(struct http_request *req);
 
 /* Framework status page */
 #if defined(STATUSPAGE)
-int		status(struct http_request *);
+int		aya_status(struct http_request *);
 #endif // STATUSPAGE
 
 /* Optional framework routes */
 #if defined(OPT_ROUTES)
-int		shutdown_parent(struct http_request *);
-int		fox(struct http_request *);
-int		teapot(struct http_request *);
+int		aya_shutdown_parent(struct http_request *);
+int		aya_fox(struct http_request *);
+int		aya_teapot(struct http_request *);
 #endif // OPT_ROUTES
 
 app_t *root_app = NULL;
@@ -70,52 +69,11 @@ aya_connect(struct connection *c)
 	return_ok();
 }
 
-char *
-aya_report(int code, char *title, size_t *length)
-{
-	static const char *default_report =
-		"<html>"
-		"<head>"
-		"<title>Ayahesa Report</title>"
-		"<style>"
-		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
-		"th{background-color:#ed143d;color:#fff}"
-		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
-		"tr:nth-child(even){background-color:#f1f1f1}"
-		"</style>"
-		"</head>"
-		"<body>"
-		"<h1>$title$</h1>"
-		"<table>"
-		"<tr><th colspan=\"2\">Ayahesa report details</th></tr>"
-		"<tr><td>Code</td><td>$code$</td></tr>"
-		"<tr><td>Message</td><td>$title$</td></tr>"
-		"<tr><td>Occurrence</td><td>$time$</td></tr>"
-		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
-		"</table>"
-		"</body>"
-		"</html>";
-
-	struct kore_buf		*buffer;
-	char 				strcode[4];
-	char 				*strtime;
-
-	snprintf(strcode, 4, "%d", code);
-	strtime = kore_time_to_date(time(NULL)),
-
-	buffer = kore_buf_alloc(strlen(default_report));
-	kore_buf_append(buffer, default_report, strlen(default_report));
-	kore_buf_replace_string(buffer, "$title$", title, strlen(title));
-	kore_buf_replace_string(buffer, "$code$", strcode, 3);
-	kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
-	return (char *)kore_buf_release(buffer, length);
-}
-
 int
 notfound(struct http_request *request)
 {
 	size_t len;
-	char *report = aya_report(404, "Not Found", &len);
+	char *report = http_report(404, "Not Found", &len);
 
 	http_response_header(request, "content-type", "text/html");
 	http_response(request, 404, report, len);
@@ -126,7 +84,7 @@ notfound(struct http_request *request)
 #if defined(STATUSPAGE)
 
 int
-status(struct http_request *request)
+aya_status(struct http_request *request)
 {
 	const char *default_page =
 		"<html>"
@@ -172,10 +130,10 @@ status(struct http_request *request)
 
 	/* Protect route with basic authentication */
 	if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
-		http_response_header(request, "www-authenticate", "Basic realm=\"Status page\"");
 		size_t len;
-		char *report = aya_report(401, "Authorization required", &len);
+		char *report = http_report(401, "Authorization required", &len);
 
+		http_response_header(request, "www-authenticate", "Basic realm=\"Status page\"");
 		http_response_header(request, "content-type", "text/html");
 		http_response(request, 401, report, len);
 		kore_free(report);
@@ -214,10 +172,10 @@ status(struct http_request *request)
 #if defined(OPT_ROUTES)
 
 int
-shutdown_parent(struct http_request *request)
+aya_shutdown_parent(struct http_request *request)
 {
 	size_t len;
-	char *report = aya_report(435, "External shutdown request", &len);
+	char *report = http_report(435, "External shutdown request", &len);
 
 	kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
 	http_response_header(request, "content-type", "text/html");
@@ -227,10 +185,10 @@ shutdown_parent(struct http_request *request)
 }
 
 int
-fox(struct http_request *request)
+aya_fox(struct http_request *request)
 {
 	size_t len;
-	char *report = aya_report(419, "I'm a fox", &len);
+	char *report = http_report(419, "I'm a fox", &len);
 
 	http_response_header(request, "content-type", "text/html");
 	http_response(request, 419, report, len);
@@ -239,10 +197,10 @@ fox(struct http_request *request)
 }
 
 int
-teapot(struct http_request *request)
+aya_teapot(struct http_request *request)
 {
 	size_t len;
-	char *report = aya_report(418, "I'm a teapot", &len);
+	char *report = http_report(418, "I'm a teapot", &len);
 
 	http_response_header(request, "content-type", "text/html");
 	http_response(request, 418, report, len);

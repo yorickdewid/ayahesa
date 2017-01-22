@@ -10,6 +10,27 @@
 
 #include <ayahesa.h>
 
+static char *
+fetch_file(char *file, size_t *file_size)
+{
+    FILE *fp = fopen(file, "r");
+    if (!fp)
+        return NULL;
+
+    /* Determine file size */
+    fseek(fp, 0, SEEK_END);
+    *file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    //TODO: mmap large files
+    char *string = kore_malloc(*file_size + 1);
+    fread(string, *file_size, 1, fp);
+    fclose(fp);
+
+    string[*file_size] = '\0';
+    return string;
+}
+
 /**
  * Resource controller
  *
@@ -17,32 +38,28 @@
 controller(resource)
 {
     char		*uuid;
+    char        filename[255];
+    size_t      file_size;
 
-    if (request->method == HTTP_METHOD_GET)
-		http_populate_get(request);
+    /* Call is a HTTP GET request for sure */
+	http_populate_get(request);
 
     /* Fetch arguments */
-    if (!http_argument_get_string(request, "id", &uuid))
+    if (!http_argument_get_string(request, "id", &uuid)) {
 	    http_response(request, 404, NULL, 0);
-
-    FILE *fp = fopen("store/100-Kaas-BV.pdf", "r");
-    if (!fp) {
-        http_response(request, 500, "Shit went wrong", 15);
         return_ok();
     }
 
-    fseek(fp, 0, SEEK_END);
-    long fsize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    snprintf(filename, 255, "store/10017-%s.jpg", uuid);
 
-    char *string = kore_malloc(fsize + 1);
-    fread(string, fsize, 1, fp);
-    fclose(fp);
+    char *string = fetch_file(filename, &file_size);
+    if (!string) {
+        http_response(request, 404, NULL, 0);
+        return_ok();
+    }
 
-    string[fsize] = '\0';
-
-    http_response_header(request, "content-type", "application/pdf");
-	http_response(request, 200, string, fsize);
+    http_response_header(request, "content-type", "image/jepg");
+	http_response(request, 200, string, file_size);
 
     kore_free(string);
 

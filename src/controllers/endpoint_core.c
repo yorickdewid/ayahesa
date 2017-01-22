@@ -20,7 +20,7 @@
  * Accept array of strings and echo the contents.
  *
  * @param  array
- * @return array
+ * @return string
  */
 jrpc_method(echo)
 {
@@ -39,7 +39,7 @@ jrpc_method(echo)
         }
     }
 
-    return jsonrpc_result(request, jrpc_write_string_array_params, NULL);
+    return jsonrpc_result(request, jrpc_write_string, "echo");
 }
 
 /**

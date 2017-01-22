@@ -21,7 +21,24 @@
 
 #include <ayahesa.h>
 
-middleware(session)
+middleware(auth_basic)
+{
+	/* Protect route with basic authentication */
+	if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
+		size_t len;
+		char *report = http_report(401, "Authorization required", &len);
+
+        http_response_header(request, "www-authenticate", "Basic realm=\"Baisc auth\"");
+		http_response_header(request, "content-type", "text/html");
+		http_response(request, 401, report, len);
+		kore_free(report);
+		return_ok();
+	}
+
+    return_ok();
+}
+
+middleware(auth_jwt)
 {
     char *method = strtok(data, " ");
     if (!method)
@@ -38,3 +55,4 @@ middleware(session)
 
 	return_error();
 }
+
