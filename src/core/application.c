@@ -67,7 +67,7 @@ application_create(app_t **app)
  * Prepare for new connection
  */
 void
-application_prelude(void)
+application_prelude(struct connection *c)
 {
     internal_counter.req_count++;
 }

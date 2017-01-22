@@ -14,11 +14,11 @@
 
 #define SERVLET_VERSION		"Kytarah/0.3"
 
-int						aya_init(int);
-int						aya_connect(struct connection *);
-static unsigned char *	aya_report(int code, char *title, size_t *length);
+int					aya_init(int);
+int					aya_connect(struct connection *);
+static char *		aya_report(int code, char *title, size_t *length);
 
-int						notfound(struct http_request *req);
+int					notfound(struct http_request *req);
 
 /* Framework status page */
 #if defined(STATUSPAGE)
@@ -54,7 +54,7 @@ aya_init(int state)
 			break;
 	}
 
-	return KORE_RESULT_OK;
+	return_ok();
 }
 
 int
@@ -64,12 +64,13 @@ aya_connect(struct connection *c)
 
 	net_recv_queue(c, http_header_max, NETBUF_CALL_CB_ALWAYS, http_header_recv);
 
-	application_prelude();
+	/* Bootstrap connection */
+	application_prelude(c);
 
-	return KORE_RESULT_OK;
+	return_ok();
 }
 
-unsigned char *
+char *
 aya_report(int code, char *title, size_t *length)
 {
 	static const char *default_report =
@@ -107,26 +108,25 @@ aya_report(int code, char *title, size_t *length)
 	kore_buf_replace_string(buffer, "$title$", title, strlen(title));
 	kore_buf_replace_string(buffer, "$code$", strcode, 3);
 	kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
-	return kore_buf_release(buffer, length);
+	return (char *)kore_buf_release(buffer, length);
 }
 
 int
-notfound(struct http_request *req)
+notfound(struct http_request *request)
 {
 	size_t len;
-	char *rep = (char *)aya_report(404, "Not Found", &len);
+	char *report = aya_report(404, "Not Found", &len);
 
-	http_response_header(req, "content-type", "text/html");
-	http_response(req, 404, rep, len);
-	kore_free(rep);
-
-	return KORE_RESULT_OK;
+	http_response_header(request, "content-type", "text/html");
+	http_response(request, 404, report, len);
+	kore_free(report);
+	return_ok();
 }
 
 #if defined(STATUSPAGE)
 
 int
-status(struct http_request *req)
+status(struct http_request *request)
 {
 	const char *default_page =
 		"<html>"
@@ -159,25 +159,27 @@ status(struct http_request *req)
 		"<tr><td>Instance</td><td>%s</td></tr>"
 		"<tr><td>Domain</td><td>%s</td></tr>"
 		"<tr><td>Uptime</td><td>%s</td></tr>"
-		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Requests</td><td>%d</td></tr>"
+		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
 		"<tr><td>Servlet version</td><td>" SERVLET_VERSION "</td></tr>"
 		"</table>"
 		"</body>"
 		"</html>";
 
+	/* Only GET */
+	http_get();
+
 	/* Protect route with basic authentication */
-	if (!http_basic_auth(req, STATUSPAGE_AUTH)) {
-		http_response_header(req, "www-authenticate", "Basic realm=\"Status page\"");
+	if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
+		http_response_header(request, "www-authenticate", "Basic realm=\"Status page\"");
 		size_t len;
-		char *rep = (char *)aya_report(401, "Authorization required", &len);
+		char *report = aya_report(401, "Authorization required", &len);
 
-		http_response_header(req, "content-type", "text/html");
-		http_response(req, 404, rep, len);
-		kore_free(rep);
-
-		return KORE_RESULT_OK;
+		http_response_header(request, "content-type", "text/html");
+		http_response(request, 401, report, len);
+		kore_free(report);
+		return_ok();
 	}
 
 	size_t default_page_length = strlen(default_page) + 512;
@@ -188,29 +190,23 @@ status(struct http_request *req)
 		application_environment(root_app),
 		application_session_lifetime(root_app),
 		application_isdebug(root_app) ? "True" : "False",
-		http_method_text(req->method),
-		req->path,
-		req->query_string,
-		req->host,
-		req->agent,
-		http_remote_addr(req),
+		http_method_text(request->method),
+		request->path,
+		request->query_string,
+		request->host,
+		request->agent,
+		http_remote_addr(request),
 		getpid(),
 		application_instance(),
 		application_domainname(root_app),
 		application_uptime(root_app),
-		kore_time_to_date(time(NULL)),
-		application_request_count());
+		application_request_count(),
+		kore_time_to_date(time(NULL)));
 
-	if (req->method != HTTP_METHOD_GET) {
-		http_response_header(req, "allow", "get");
-		http_response(req, 405, NULL, 0);
-		return (KORE_RESULT_OK);
-	}
-
-	http_response_header(req, "content-type", "text/html");
-	http_response(req, 200, buffer, strlen(buffer));
+	http_response_header(request, "content-type", "text/html");
+	http_response(request, 200, buffer, strlen(buffer));
 	kore_free(buffer);
-	return KORE_RESULT_OK;
+	return_ok();
 }
 
 #endif // STATUSPAGE
@@ -218,40 +214,40 @@ status(struct http_request *req)
 #if defined(OPT_ROUTES)
 
 int
-shutdown_parent(struct http_request *req)
+shutdown_parent(struct http_request *request)
 {
 	size_t len;
-	char *rep = (char *)aya_report(435, "External shutdown request", &len);
+	char *report = aya_report(435, "External shutdown request", &len);
 
 	kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
-	http_response_header(req, "content-type", "text/html");
-	http_response(req, 435, rep, len);
-	kore_free(rep);
-	return KORE_RESULT_OK;
+	http_response_header(request, "content-type", "text/html");
+	http_response(request, 435, report, len);
+	kore_free(report);
+	return_ok();
 }
 
 int
-fox(struct http_request *req)
+fox(struct http_request *request)
 {
 	size_t len;
-	char *rep = (char *)aya_report(419, "I'm a fox", &len);
+	char *report = aya_report(419, "I'm a fox", &len);
 
-	http_response_header(req, "content-type", "text/html");
-	http_response(req, 419, rep, len);
-	kore_free(rep);
-	return KORE_RESULT_OK;
+	http_response_header(request, "content-type", "text/html");
+	http_response(request, 419, report, len);
+	kore_free(report);
+	return_ok();
 }
 
 int
-teapot(struct http_request *req)
+teapot(struct http_request *request)
 {
 	size_t len;
-	char *rep = (char *)aya_report(418, "I'm a teapot", &len);
+	char *report = aya_report(418, "I'm a teapot", &len);
 
-	http_response_header(req, "content-type", "text/html");
-	http_response(req, 418, rep, len);
-	kore_free(rep);
-	return KORE_RESULT_OK;
+	http_response_header(request, "content-type", "text/html");
+	http_response(request, 418, report, len);
+	kore_free(report);
+	return_ok();
 }
 
 #endif // OPT_ROUTES

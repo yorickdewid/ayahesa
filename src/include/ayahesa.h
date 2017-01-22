@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 Quenza Inc.
+ * Copyright (C) 2017 Quenza Inc.
  * All Rights Reserved
  *
  * This file is part of the Ayahesa core.
@@ -86,7 +86,7 @@ char *http_remote_addr(struct http_request *);
 void application_create(app_t **);
 void application_config(app_t *, const char *);
 void application_release(app_t *);
-void application_prelude(void);
+void application_prelude(struct connection *);
 
 char *application_uptime(app_t *);
 unsigned int application_request_count(void);
