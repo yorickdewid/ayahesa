@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 Quenza Inc.
+ * Copyright (C) 2017 Quenza Inc.
  * All Rights Reserved
  *
  * This file is part of the Ayahesa core.
@@ -19,10 +19,10 @@
     root_app->value.str
 
 #define return_ok() \
-	return (KORE_RESULT_OK); 
+	return KORE_RESULT_OK; 
 
 #define return_error() \
-	return (KORE_RESULT_ERROR); 
+	return KORE_RESULT_ERROR;
 
 #define http_get() \
 	if (request->method != HTTP_METHOD_GET) { \
@@ -45,6 +45,14 @@
 		http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
 		return (KORE_RESULT_OK); \
 	}
+
+/*
+ * HTTP middleware
+ */
+
+#define middleware(m) \
+    int middleware_##m(struct http_request *, char *); \
+    int middleware_##m(struct http_request *request, char *data)
 
 /*
  * HTTP directives

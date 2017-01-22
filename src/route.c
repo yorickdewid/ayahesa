@@ -22,8 +22,6 @@
 
 #include <ayahesa.h>
 
-#include "assets.h"
-
 /*
  * Default routes with quick return
  */
