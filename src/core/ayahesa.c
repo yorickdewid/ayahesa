@@ -14,14 +14,21 @@
 
 #define SERVLET_VERSION		"Kytarah/0.3"
 
-int		aya_init(int);
-int		aya_connect(struct connection *);
-void	aya_disconnect(struct connection *);
+int						aya_init(int);
+int						aya_connect(struct connection *);
+static unsigned char *	aya_report(int code, char *title, size_t *length);
 
+int		notfound(struct http_request *req);
+
+#if defined(STATUSPAGE)
 int		status(struct http_request *);
+#endif // STATUSPAGE
+
+#if defined(OPT_ROUTES)
 int		shutdown_parent(struct http_request *);
 int		fox(struct http_request *);
 int		teapot(struct http_request *);
+#endif // OPT_ROUTES
 
 app_t *root_app = NULL;
 
@@ -55,17 +62,63 @@ aya_connect(struct connection *c)
 
 	net_recv_queue(c, http_header_max, NETBUF_CALL_CB_ALWAYS, http_header_recv);
 
-	// c->disconnect = aya_disconnect;
-
 	application_prelude();
 
 	return KORE_RESULT_OK;
 }
 
-void
-aya_disconnect(struct connection *c)
+unsigned char *
+aya_report(int code, char *title, size_t *length)
 {
-	
+	const char *default_report =
+		"<html>"
+		"<head>"
+		"<title>Ayahesa Report</title>"
+		"<style>"
+		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
+		"th{background-color:#ed143d;color:#fff}"
+		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
+		"tr:nth-child(even){background-color:#f1f1f1}"
+		"</style>"
+		"</head>"
+		"<body>"
+		"<h1>$title$</h1>"
+		"<table>"
+		"<tr><th colspan=\"2\">Ayahesa report details</th></tr>"
+		"<tr><td>Code</td><td>$code$</td></tr>"
+		"<tr><td>Message</td><td>$title$</td></tr>"
+		"<tr><td>Occurrence</td><td>$time$</td></tr>"
+		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
+		"</table>"
+		"</body>"
+		"</html>";
+
+	struct kore_buf		*buffer;
+	char 				strcode[4];
+	char 				*strtime;
+
+	snprintf(strcode, 4, "%d", code);
+	strtime = kore_time_to_date(time(NULL)),
+
+	buffer = kore_buf_alloc(strlen(default_report));
+	kore_buf_append(buffer, default_report, strlen(default_report));
+	kore_buf_replace_string(buffer, "$title$", title, strlen(title));
+	kore_buf_replace_string(buffer, "$code$", strcode, 3);
+	kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
+	return kore_buf_release(buffer, length);
+}
+
+int
+notfound(struct http_request *req)
+{
+	size_t len;
+	char *rep = (char *)aya_report(404, "Not Found", &len);
+
+	http_response_header(req, "content-type", "text/html");
+	http_response(req, 404, rep, len);
+	kore_free(rep);
+
+	return KORE_RESULT_OK;
 }
 
 #if defined(STATUSPAGE)
@@ -100,6 +153,7 @@ status(struct http_request *req)
 		"<tr><td>Agent</td><td>%s</td></tr>"
 		"<tr><td>Remote</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Core</th></tr>"
+		"<tr><td>Process</td><td>%d</td></tr>"
 		"<tr><td>Instance</td><td>%s</td></tr>"
 		"<tr><td>Domain</td><td>%s</td></tr>"
 		"<tr><td>Uptime</td><td>%s</td></tr>"
@@ -114,28 +168,13 @@ status(struct http_request *req)
 	/* Protect route with basic authentication */
 	if (!http_basic_auth(req, STATUSPAGE_AUTH)) {
 		http_response_header(req, "www-authenticate", "Basic realm=\"Status page\"");
-		const char *error_page =
-			"<html>"
-			"<head>"
-			"<title>Ayahesa</title>"
-			"<style>"
-			"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
-			"th{background-color:#ed143d;color:#fff}"
-			"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
-			"tr:nth-child(even){background-color:#f1f1f1}"
-			"</style>"
-			"</head>"
-			"<body>"
-			"<h1>Authorization required</h1>"
-			"<table>"
-			"<tr><th colspan=\"2\">Details</th></tr>"
-			"<tr><td>Error</td><td>401</td></tr>"
-			"<tr><td>Message</td><td>Authorization required</td></tr>"
-			"</table>"
-			"</body>"
-			"</html>";
+		size_t len;
+		char *rep = (char *)aya_report(401, "Authorization required", &len);
 
-		http_response(req, 401, error_page, strlen(error_page));
+		http_response_header(req, "content-type", "text/html");
+		http_response(req, 404, rep, len);
+		kore_free(rep);
+
 		return KORE_RESULT_OK;
 	}
 
@@ -153,6 +192,7 @@ status(struct http_request *req)
 		req->host,
 		req->agent,
 		http_remote_addr(req),
+		getpid(),
 		application_instance(),
 		application_domainname(root_app),
 		application_uptime(root_app),
@@ -178,45 +218,38 @@ status(struct http_request *req)
 int
 shutdown_parent(struct http_request *req)
 {
-    kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
-	http_response(req, 435, NULL, 0);
+	size_t len;
+	char *rep = (char *)aya_report(435, "External shutdown request", &len);
+
+	kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
+	http_response_header(req, "content-type", "text/html");
+	http_response(req, 435, rep, len);
+	kore_free(rep);
 	return KORE_RESULT_OK;
 }
 
 int
 fox(struct http_request *req)
 {
-	http_response_header(req, "content-type", "text/plain");
-	http_response(req, 419, "I'm a fox.", 10);
+	size_t len;
+	char *rep = (char *)aya_report(419, "I'm a fox", &len);
+
+	http_response_header(req, "content-type", "text/html");
+	http_response(req, 419, rep, len);
+	kore_free(rep);
 	return KORE_RESULT_OK;
 }
 
 int
 teapot(struct http_request *req)
 {
-	http_response_header(req, "content-type", "text/plain");
-	http_response(req, 418, "I'm a teapot.", 13);
+	size_t len;
+	char *rep = (char *)aya_report(418, "I'm a teapot", &len);
+
+	http_response_header(req, "content-type", "text/html");
+	http_response(req, 418, rep, len);
+	kore_free(rep);
 	return KORE_RESULT_OK;
-}
-
-int middleware_session(struct http_request *req, char *data);
-int
-middleware_session(struct http_request *req, char *data)
-{
-    char *method = strtok(data, " ");
-    if (method == NULL)
-        return KORE_RESULT_ERROR;
-
-	/* Require bearer authentication */
-    if (!strcmp(strtolower(method), "bearer")) {
-        char *token = strtok(NULL, " ");
-
-		/* Verify token */
-		if (jwt_verify(token))
-			return KORE_RESULT_OK;
-    }
-
-	return KORE_RESULT_ERROR;
 }
 
 #endif // OPT_ROUTES

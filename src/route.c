@@ -29,18 +29,20 @@
  */
 route(report) { write_plain("Reporting back"); }
 route(html) { write_html("<b>Important!</b>"); }
-route(root) { redirect("/app/main"); }
+route(root) { redirect("/app/welcome"); }
 
 /*
  * Welcome page, show some framework love
  */
-route(main)
+route(welcome)
 {
 	const char *default_page = 
 		"<html>"
 		"<head><title>Welcome to Ayahesa</title></head>"
-		"<body>"
-		"<h1>Welcome to Ayahesa</h1>"
+		"<body style=\"background-color:#333;color:#fff;\">"
+		"<div style=\"font-family:sans-serif;text-align:center;margin:260px;\">"
+		"<span style=\"font-size:50px;\">Welcome to Ayahesa</span>"
+		"</div>"
 		"</body>"
 		"</html>";
 
@@ -59,7 +61,7 @@ route(main)
  *
  * Controller: foo
  */
-route(foo)
+route(cookie)
 {
     /* Only accept GET requests */
 	http_get();

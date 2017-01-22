@@ -16,6 +16,15 @@
  */
 controller(resource)
 {
+    char		*uuid;
+
+    if (request->method == HTTP_METHOD_GET)
+		http_populate_get(request);
+
+    /* Fetch arguments */
+    if (!http_argument_get_string(request, "id", &uuid))
+	    http_response(request, 404, NULL, 0);
+
     FILE *fp = fopen("store/100-Kaas-BV.pdf", "r");
     if (!fp) {
         http_response(request, 500, "Shit went wrong", 15);
