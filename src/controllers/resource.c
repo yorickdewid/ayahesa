@@ -41,6 +41,13 @@ controller(resource)
     char        filename[255];
     size_t      file_size;
 
+    /* Must be authenticated */
+    if (!request->hdlr_extra)
+        return_error();
+    struct request_data *auth = (struct request_data *)request->hdlr_extra;
+    if (!auth->auth.principal)
+        return_error();
+
     /* Call is a HTTP GET request for sure */
 	http_populate_get(request);
 
@@ -50,7 +57,7 @@ controller(resource)
         return_ok();
     }
 
-    snprintf(filename, 255, "store/10017-%s.jpg", uuid);
+    snprintf(filename, 255, "store/%d-%s.jpg", auth->auth.object_id, uuid);
 
     char *string = fetch_file(filename, &file_size);
     if (!string) {

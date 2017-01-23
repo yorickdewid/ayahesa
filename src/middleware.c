@@ -40,6 +40,9 @@ middleware(auth_basic)
 
 middleware(auth_jwt)
 {
+	if (!request->hdlr_extra)
+        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+
     char *method = strtok(data, " ");
     if (!method)
         return_error();
@@ -49,8 +52,12 @@ middleware(auth_jwt)
         char *token = strtok(NULL, " ");
 
 		/* Verify token */
-		if (jwt_verify(token))
+		if (jwt_verify(token)) {
+            struct request_data *_data = (struct request_data *)request->hdlr_extra;
+			_data->auth.object_id = 10017;
+			_data->auth.principal = kore_strdup("woei");
 			return_ok();
+		}
     }
 
 	return_error();

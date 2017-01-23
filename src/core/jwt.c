@@ -173,7 +173,6 @@ jwt_verify(char *token)
 
     /* Token not yet active */
     if ((long long int)time(NULL) < YAJL_GET_INTEGER(obj_issued)) {
-        puts("NOT YET");
         yajl_tree_free(jwt);
         kore_free(payload);
         kore_free(signature_encoded);

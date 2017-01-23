@@ -78,7 +78,7 @@ http_basic_auth(struct http_request *request, const char *auth)
     size_t undecodelen;
     char *header_auth = NULL;
 
-    /* Clear any previous auth data */
+    /* Store authentication results */
     if (!request->hdlr_extra)
         request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
 
