@@ -19,6 +19,7 @@
 struct {
 	time_t boot;
 	unsigned int req_count;
+    unsigned int conn_active;
 } internal_counter;
 
 /*
@@ -35,6 +36,7 @@ application_create(app_t **app)
     /* Reset counters */
     internal_counter.boot = time(NULL);
     internal_counter.req_count = 0;
+    internal_counter.conn_active = 0;
 
     /* Setup application root tree */
     app_t *root = (app_t *)kore_malloc(sizeof(app_t));
@@ -70,6 +72,16 @@ void
 application_prelude(struct connection *c)
 {
     internal_counter.req_count++;
+    internal_counter.conn_active++;
+}
+
+/*
+ * Post process connection
+ */
+void
+application_postproc(struct connection *c)
+{
+    internal_counter.conn_active--;
 }
 
 /*
@@ -216,6 +228,15 @@ unsigned int
 application_request_count(void)
 {
     return internal_counter.req_count;
+}
+
+/*
+ * Application active connection counter
+ */
+unsigned int
+application_active_conncount(void)
+{
+    return internal_counter.conn_active - 1;
 }
 
 /*

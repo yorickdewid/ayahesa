@@ -71,6 +71,13 @@ struct app_tree {
     } child;
 };
 
+struct request_data {
+    struct {
+        unsigned int object_id;
+        char *principal;
+    } auth;
+};
+
 typedef struct app_tree app_t;
 
 /* Core root definition */
@@ -80,12 +87,14 @@ void application_create(app_t **);
 void application_config(app_t *, const char *);
 void application_release(app_t *);
 void application_prelude(struct connection *);
+void application_postproc(struct connection *c);
 
 /*
  * Application operations
  */
 char *          application_uptime(app_t *);
 unsigned int    application_request_count(void);
+unsigned int    application_active_conncount(void);
 int             application_isdebug(app_t *);
 char *          application_name(app_t *);
 char *          application_environment(app_t *);

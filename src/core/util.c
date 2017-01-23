@@ -78,6 +78,10 @@ http_basic_auth(struct http_request *request, const char *auth)
     size_t undecodelen;
     char *header_auth = NULL;
 
+    /* Clear any previous auth data */
+    if (!request->hdlr_extra)
+        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+
     if (basic_auth_count >= 5) {
         sleep(2);
         basic_auth_count = 0;
@@ -101,8 +105,17 @@ http_basic_auth(struct http_request *request, const char *auth)
         kore_base64_decode(code, (u_int8_t **)&undecode, &undecodelen);
         if (undecodelen != strlen(auth))
             return 0;
-        if (!strncmp(undecode, auth, undecodelen))
+
+        if (!strncmp(undecode, auth, undecodelen)) {
+            char *principal = kore_strdup(auth);
+            char *split = strchr(principal, ':');
+            split[0] = '\0';
+
+            struct request_data *data = (struct request_data *)request->hdlr_extra;
+            data->auth.principal = principal;
+
             return 1;
+        }
     }
 
     basic_auth_count++;

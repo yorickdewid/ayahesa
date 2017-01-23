@@ -26,7 +26,7 @@
  * Default routes with quick return
  */
 route(report) { write_plain("Reporting back"); }
-route(html) { write_html("<b>Important!</b>"); }
+route(html) { write_html("<h1>Important!</h1>"); }
 route(root) { redirect("/app/welcome"); }
 
 /*
@@ -57,14 +57,14 @@ route(welcome)
 /*
  * Handle request in controller
  *
- * Controller: foo
+ * Controller: cookie
  */
 route(cookie)
 {
     /* Only accept GET requests */
 	http_get();
 
-    invoke(foo);
+    invoke(cookie);
 
 	/* We're good */
 	return_ok();

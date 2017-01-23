@@ -11,12 +11,12 @@
 #include <ayahesa.h>
 
 /**
- * Foo controller
+ * Cookie controller
  *
  * Test the request information and set a cookie
  * when not done before. Report example text back.
  */
-controller(foo)
+controller(cookie)
 {
     const char *cookie = http_get_cookie(request, "track");
     if (cookie == NULL)

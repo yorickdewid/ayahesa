@@ -28,7 +28,7 @@ middleware(auth_basic)
 		size_t len;
 		char *report = http_report(401, "Authorization required", &len);
 
-        http_response_header(request, "www-authenticate", "Basic realm=\"Baisc auth\"");
+		http_response_header(request, "www-authenticate", "Basic realm=\"Baisc auth\"");
 		http_response_header(request, "content-type", "text/html");
 		http_response(request, 401, report, len);
 		kore_free(report);

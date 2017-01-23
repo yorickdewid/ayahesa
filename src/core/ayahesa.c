@@ -16,15 +16,14 @@
 
 int					aya_init(int);
 int					aya_connect(struct connection *);
+void				aya_disconnect(struct connection *);
 
 int					notfound(struct http_request *req);
 
-/* Framework status page */
 #if defined(STATUSPAGE)
 int		aya_status(struct http_request *);
 #endif // STATUSPAGE
 
-/* Optional framework routes */
 #if defined(OPT_ROUTES)
 int		aya_shutdown_parent(struct http_request *);
 int		aya_fox(struct http_request *);
@@ -63,10 +62,19 @@ aya_connect(struct connection *c)
 
 	net_recv_queue(c, http_header_max, NETBUF_CALL_CB_ALWAYS, http_header_recv);
 
+	c->disconnect = aya_disconnect;
+
 	/* Bootstrap connection */
 	application_prelude(c);
 
 	return_ok();
+}
+
+void
+aya_disconnect(struct connection *c)
+{
+	/* Process cleanup */
+	application_postproc(c);
 }
 
 int
@@ -112,12 +120,14 @@ aya_status(struct http_request *request)
 		"<tr><td>Host</td><td>%s</td></tr>"
 		"<tr><td>Agent</td><td>%s</td></tr>"
 		"<tr><td>Remote</td><td>%s</td></tr>"
+		"<tr><td>User</td><td>%s</td></tr>"
 		"<tr><th colspan=\"2\">Core</th></tr>"
 		"<tr><td>Process</td><td>%d</td></tr>"
 		"<tr><td>Instance</td><td>%s</td></tr>"
 		"<tr><td>Domain</td><td>%s</td></tr>"
 		"<tr><td>Uptime</td><td>%s</td></tr>"
 		"<tr><td>Requests</td><td>%d</td></tr>"
+		"<tr><td>Active connections</td><td>%d</td></tr>"
 		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
 		"<tr><td>Servlet version</td><td>" SERVLET_VERSION "</td></tr>"
@@ -140,6 +150,7 @@ aya_status(struct http_request *request)
 		return_ok();
 	}
 
+	/* Fill HTML structure */
 	size_t default_page_length = strlen(default_page) + 512;
 	char *buffer = (char *)kore_calloc(default_page_length, sizeof(char));
 	snprintf(buffer, default_page_length,
@@ -154,11 +165,13 @@ aya_status(struct http_request *request)
 		request->host,
 		request->agent,
 		http_remote_addr(request),
+		request->hdlr_extra ? ((struct request_data *)request->hdlr_extra)->auth.principal : "(null)",
 		getpid(),
 		application_instance(),
 		application_domainname(root_app),
 		application_uptime(root_app),
 		application_request_count(),
+		application_active_conncount(),
 		kore_time_to_date(time(NULL)));
 
 	http_response_header(request, "content-type", "text/html");
