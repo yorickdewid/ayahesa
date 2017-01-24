@@ -23,6 +23,13 @@
 
 middleware(auth_basic)
 {
+	if (!request->hdlr_extra)
+        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+
+	struct request_data *_data = (struct request_data *)request->hdlr_extra;
+	_data->auth.object_id = 1;
+	_data->auth.principal = kore_strdup("eve");
+
 	/* Protect route with basic authentication */
 	if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
 		size_t len;

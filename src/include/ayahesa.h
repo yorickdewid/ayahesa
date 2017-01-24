@@ -92,15 +92,16 @@ void application_postproc(struct connection *c);
 /*
  * Application operations
  */
-char *          application_uptime(app_t *);
-unsigned int    application_request_count(void);
-unsigned int    application_active_conncount(void);
-int             application_isdebug(app_t *);
-char *          application_name(app_t *);
-char *          application_environment(app_t *);
-int             application_session_lifetime(app_t *);
-const char *    application_domainname(app_t *app);
-char *          application_key(app_t *app);
+char *          app_instance(void);
+char *          app_uptime(void);
+unsigned int    app_request_count(void);
+unsigned int    app_active_conncount(void);
+int             app_isdebug(void);
+char *          app_name(void);
+char *          app_environment(void);
+int             app_session_lifetime(void);
+const char *    app_domainname(void);
+char *          app_key(void);
 
 /*
  * HTTP helpers

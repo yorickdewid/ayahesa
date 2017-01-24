@@ -198,10 +198,38 @@ application_config(app_t *app, const char *configfile)
 }
 
 /*
+ * Release application
+ */
+void
+application_release(app_t *app)
+{
+    if (app == NULL)
+        return;
+
+    /* Traverse tree and free pointers */
+    tree_free(app);
+
+    kore_free(app);
+}
+
+//////////////////////////////////////////////////
+// Public functions                             //
+//////////////////////////////////////////////////
+
+/*
  * Application uptime
  */
 char *
-application_uptime(app_t *app)
+app_instance(void)
+{
+    return root_app->value.str;
+}
+
+/*
+ * Application uptime
+ */
+char *
+app_uptime(void)
 {
     int diff_tm;
     time_t end_tm = 0;
@@ -225,7 +253,7 @@ application_uptime(app_t *app)
  * Application request counter
  */
 unsigned int
-application_request_count(void)
+app_request_count(void)
 {
     return internal_counter.req_count;
 }
@@ -234,7 +262,7 @@ application_request_count(void)
  * Application active connection counter
  */
 unsigned int
-application_active_conncount(void)
+app_active_conncount(void)
 {
     return internal_counter.conn_active - 1;
 }
@@ -243,10 +271,10 @@ application_active_conncount(void)
  * Application debug mode check
  */
 int
-application_isdebug(app_t *app)
+app_isdebug(void)
 {
     int debug = 0;
-    tree_get_int(app->child.ptr[TREE_CONFIG], "debug", &debug);
+    tree_get_int(root_app->child.ptr[TREE_CONFIG], "debug", &debug);
 
     return debug;
 }
@@ -255,10 +283,10 @@ application_isdebug(app_t *app)
  * Application name
  */
 char *
-application_name(app_t *app)
+app_name(void)
 {
     char *name = NULL;
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app.name", &name);
+    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.name", &name);
 
     return name;
 }
@@ -267,10 +295,10 @@ application_name(app_t *app)
  * Application environment
  */
 char *
-application_environment(app_t *app)
+app_environment(void)
 {
     char *name = NULL;
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app.env", &name);
+    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.env", &name);
 
     return name;
 }
@@ -279,10 +307,10 @@ application_environment(app_t *app)
  * Application session lifetime in seconds
  */
 int
-application_session_lifetime(app_t *app)
+app_session_lifetime(void)
 {
     int session_lifetime = 0;
-    tree_get_int(app->child.ptr[TREE_CONFIG], "app.session", &session_lifetime);
+    tree_get_int(root_app->child.ptr[TREE_CONFIG], "app.session", &session_lifetime);
 
     return session_lifetime;
 }
@@ -291,10 +319,10 @@ application_session_lifetime(app_t *app)
  * Application key
  */
 char *
-application_key(app_t *app)
+app_key(void)
 {
     char *app_key = NULL;
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app.key", &app_key);
+    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.key", &app_key);
 
     return app_key;
 }
@@ -303,35 +331,20 @@ application_key(app_t *app)
  * Application domainname
  */
 const char *
-application_domainname(app_t *app)
+app_domainname(void)
 {
     static char domainname[128];
     char *domain = NULL;
 
-    tree_get_str(app->child.ptr[TREE_CONFIG], "app.domain", &domain);
+    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.domain", &domain);
 
     if (domain == NULL)
         return NULL;
 
-    strcpy(domainname, application_instance());
+    strcpy(domainname, app_instance());
     if (domain[0] != '.')
         strcat(domainname,  ".");
     strcat(domainname, domain);
 
     return strtolower(domainname);
-}
-
-/*
- * Release application
- */
-void
-application_release(app_t *app)
-{
-    if (app == NULL)
-        return;
-
-    /* Traverse tree and free pointers */
-    tree_free(app);
-
-    kore_free(app);
 }

@@ -78,10 +78,6 @@ http_basic_auth(struct http_request *request, const char *auth)
     size_t undecodelen;
     char *header_auth = NULL;
 
-    /* Store authentication results */
-    if (!request->hdlr_extra)
-        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
-
     if (basic_auth_count >= 5) {
         sleep(2);
         basic_auth_count = 0;
@@ -110,9 +106,10 @@ http_basic_auth(struct http_request *request, const char *auth)
             char *principal = kore_strdup(auth);
             char *split = strchr(principal, ':');
             split[0] = '\0';
+            kore_free(principal);
 
-            struct request_data *data = (struct request_data *)request->hdlr_extra;
-            data->auth.principal = principal;
+            //struct request_data *data = (struct request_data *)request->hdlr_extra;
+            // data->auth.principal = principal;
 
             return 1;
         }

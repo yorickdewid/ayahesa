@@ -37,7 +37,7 @@ fetch_file(char *file, size_t *file_size)
  */
 controller(resource)
 {
-    char		*uuid;
+    char		*uuid, *ext;
     char        filename[255];
     size_t      file_size;
 
@@ -45,19 +45,20 @@ controller(resource)
     if (!request->hdlr_extra)
         return_error();
     struct request_data *auth = (struct request_data *)request->hdlr_extra;
-    if (!auth->auth.principal)
+    if (!auth->auth.principal || !auth->auth.object_id)
         return_error();
 
     /* Call is a HTTP GET request for sure */
 	http_populate_get(request);
 
     /* Fetch arguments */
-    if (!http_argument_get_string(request, "id", &uuid)) {
+    if (!http_argument_get_string(request, "id", &uuid) ||
+        !http_argument_get_string(request, "ext", &ext)) {
 	    http_response(request, 404, NULL, 0);
         return_ok();
     }
 
-    snprintf(filename, 255, "store/%d-%s.jpg", auth->auth.object_id, uuid);
+    snprintf(filename, 255, "store/%d-%s.%s", auth->auth.object_id, uuid, ext);
 
     char *string = fetch_file(filename, &file_size);
     if (!string) {

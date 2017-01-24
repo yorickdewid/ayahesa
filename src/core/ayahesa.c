@@ -139,7 +139,7 @@ aya_status(struct http_request *request)
 	http_get();
 
 	/* Protect route with basic authentication */
-	if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
+	/*if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
 		size_t len;
 		char *report = http_report(401, "Authorization required", &len);
 
@@ -148,17 +148,17 @@ aya_status(struct http_request *request)
 		http_response(request, 401, report, len);
 		kore_free(report);
 		return_ok();
-	}
+	}*/
 
 	/* Fill HTML structure */
 	size_t default_page_length = strlen(default_page) + 512;
 	char *buffer = (char *)kore_calloc(default_page_length, sizeof(char));
 	snprintf(buffer, default_page_length,
 		default_page,
-		application_name(root_app),
-		application_environment(root_app),
-		application_session_lifetime(root_app),
-		application_isdebug(root_app) ? "True" : "False",
+		app_name(),
+		app_environment(),
+		app_session_lifetime(),
+		app_isdebug() ? "True" : "False",
 		http_method_text(request->method),
 		request->path,
 		request->query_string,
@@ -167,11 +167,11 @@ aya_status(struct http_request *request)
 		http_remote_addr(request),
 		request->hdlr_extra ? ((struct request_data *)request->hdlr_extra)->auth.principal : "(null)",
 		getpid(),
-		application_instance(),
-		application_domainname(root_app),
-		application_uptime(root_app),
-		application_request_count(),
-		application_active_conncount(),
+		app_instance(),
+		app_domainname(),
+		app_uptime(),
+		app_request_count(),
+		app_active_conncount(),
 		kore_time_to_date(time(NULL)));
 
 	http_response_header(request, "content-type", "text/html");

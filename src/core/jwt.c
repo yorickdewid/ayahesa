@@ -16,7 +16,8 @@
 
 #include "base64url.h"
 
-#define TEST_JTI    "00000000-0000-0000-0000-000000000000"
+#define TEST_JTI        "00000000-0000-0000-0000-000000000000"
+#define HEADER_ENCODED  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
 
 struct jwt {
     const char *iss;
@@ -43,7 +44,7 @@ jwt_generate_payload(const char *issuer, const char *subject, const char *audien
     yajl_gen_string(jwt, (const unsigned char *)"iat", 3);
     yajl_gen_integer(jwt, (long long int)time(NULL));
     yajl_gen_string(jwt, (const unsigned char *)"exp", 3);
-    yajl_gen_integer(jwt, (long long int)time(NULL) + application_session_lifetime(root_app));
+    yajl_gen_integer(jwt, (long long int)time(NULL) + app_session_lifetime());
     yajl_gen_string(jwt, (const unsigned char *)"jti", 3);
     yajl_gen_string(jwt, (const unsigned char *)TEST_JTI, strlen(TEST_JTI));
     yajl_gen_map_close(jwt);
@@ -85,7 +86,7 @@ char *
 jwt_token_new(const char *subject, const char *audience)
 {
     /* Hard coded header */
-    unsigned char *header_encoded = (unsigned char *)"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+    unsigned char *header_encoded = (unsigned char *)HEADER_ENCODED;
     unsigned char *payload_encoded = NULL;
     unsigned char *signature_encoded = NULL;
     size_t header_encoded_length = 36;
@@ -95,11 +96,11 @@ jwt_token_new(const char *subject, const char *audience)
     char *rawkey = NULL;
     size_t rawkey_len;
 
-    char *key = application_key(root_app);
+    char *key = app_key();
     kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
 
     /* Generate payload */
-    payload_encoded = jwt_generate_payload(application_domainname(root_app), subject, audience, &payload_encoded_length);
+    payload_encoded = jwt_generate_payload(app_domainname(), subject, audience, &payload_encoded_length);
 
     /*
      * Prepare signature input
@@ -138,13 +139,13 @@ jwt_verify(char *token)
         return 0;
 
     /* Header must match */
-    if (strcmp(parts[0], "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"))
+    if (strcmp(parts[0], HEADER_ENCODED))
         return 0;
 
     char *rawkey = NULL;
     size_t rawkey_len;
 
-    char *key = application_key(root_app);
+    char *key = app_key();
     kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
 
     /* Calculate hash over incomming token */

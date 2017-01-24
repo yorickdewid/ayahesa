@@ -15,9 +15,6 @@
  * Generic
  */
 
-#define application_instance() \
-    root_app->value.str
-
 #define return_ok() \
 	return KORE_RESULT_OK; 
 
