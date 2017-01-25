@@ -138,18 +138,6 @@ aya_status(struct http_request *request)
 	/* Only GET */
 	http_get();
 
-	/* Protect route with basic authentication */
-	/*if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
-		size_t len;
-		char *report = http_report(401, "Authorization required", &len);
-
-		http_response_header(request, "www-authenticate", "Basic realm=\"Status page\"");
-		http_response_header(request, "content-type", "text/html");
-		http_response(request, 401, report, len);
-		kore_free(report);
-		return_ok();
-	}*/
-
 	/* Fill HTML structure */
 	size_t default_page_length = strlen(default_page) + 512;
 	char *buffer = (char *)kore_calloc(default_page_length, sizeof(char));
