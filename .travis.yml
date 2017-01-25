@@ -9,8 +9,10 @@ addons:
     packages:
     - libssl-dev
     - libyajl-dev
+    - libyajl2
 
 script:
+  - dpkg-query -L libyajl-dev 
   - git clone https://github.com/jorisvink/kore
   - cd kore
   - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\n/' Makefile
