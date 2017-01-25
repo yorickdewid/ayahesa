@@ -15,10 +15,11 @@ addons:
     - libyajl-dev
 
 script:
-  - dpkg-query -L libyajl-dev 
   - git clone https://github.com/jorisvink/kore
   - cd kore
   - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\n/' Makefile
-  - make && make install
+  - make
   - cd ..
-  - kore -v
+  - kore/kore -v
+  - kore/kore flavor test
+  - kore/kore build
