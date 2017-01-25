@@ -83,12 +83,6 @@ typedef struct app_tree app_t;
 /* Core root definition */
 extern app_t *root_app;
 
-void application_create(app_t **);
-void application_config(app_t *, const char *);
-void application_release(app_t *);
-void application_prelude(struct connection *);
-void application_postproc(struct connection *c);
-
 /*
  * Application operations
  */

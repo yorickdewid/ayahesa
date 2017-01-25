@@ -16,6 +16,12 @@
 #include <assert.h>
 #include <time.h>
 
+void application_create(app_t **);
+void application_config(app_t *, const char *);
+void application_release(app_t *);
+void application_prelude(struct connection *);
+void application_postproc(struct connection *c);
+
 struct {
 	time_t boot;
 	unsigned int req_count;

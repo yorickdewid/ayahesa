@@ -14,6 +14,13 @@
 
 #define SERVLET_VERSION		"Kytarah/0.3"
 
+/* Application core operations */
+extern void 		application_create(app_t **);
+extern void 		application_config(app_t *, const char *);
+extern void 		application_release(app_t *);
+extern void 		application_prelude(struct connection *);
+extern void 		application_postproc(struct connection *c);
+
 int					aya_init(int);
 int					aya_connect(struct connection *);
 void				aya_disconnect(struct connection *);
