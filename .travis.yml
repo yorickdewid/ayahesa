@@ -1,5 +1,9 @@
 language: c
 sudo: false
+dist: trusty
+os:
+  - linux
+
 compiler:
   - clang
   - gcc
@@ -9,7 +13,6 @@ addons:
     packages:
     - libssl-dev
     - libyajl-dev
-    - libyajl2
 
 script:
   - dpkg-query -L libyajl-dev 
