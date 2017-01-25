@@ -1,6 +1,7 @@
 language: c
-sudo: false
+sudo: true
 dist: trusty
+
 os:
   - linux
 
@@ -14,12 +15,14 @@ addons:
     - libssl-dev
     - libyajl-dev
 
-script:
+before_script:
   - git clone https://github.com/jorisvink/kore
   - cd kore
   - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\n/' Makefile
-  - make
+  - make && make install
   - cd ..
-  - kore/kore -v
-  - kore/kore flavor test
-  - kore/kore build
+  - kore -v
+
+script:
+  - kore flavor test
+  - kore build
