@@ -12,7 +12,7 @@
 
 #include <time.h>
 
-#define SERVLET_VERSION		"Kytarah/0.3"
+#define SERVLET_VERSION		"Kytarah/0.4"
 
 /* Application core operations */
 extern void 		application_create(app_t **);

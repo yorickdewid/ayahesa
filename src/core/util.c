@@ -102,17 +102,8 @@ http_basic_auth(struct http_request *request, const char *auth)
         if (undecodelen != strlen(auth))
             return 0;
 
-        if (!strncmp(undecode, auth, undecodelen)) {
-            char *principal = kore_strdup(auth);
-            char *split = strchr(principal, ':');
-            split[0] = '\0';
-            kore_free(principal);
-
-            //struct request_data *data = (struct request_data *)request->hdlr_extra;
-            // data->auth.principal = principal;
-
+        if (!strncmp(undecode, auth, undecodelen))
             return 1;
-        }
     }
 
     basic_auth_count++;

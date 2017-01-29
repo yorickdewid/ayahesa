@@ -78,6 +78,14 @@ struct request_data {
     } auth;
 };
 
+struct jwt {
+    const char *iss;
+    const char *sub;
+    const char *aud;
+    long long int iat;
+    long long int exp;
+};
+
 typedef struct app_tree app_t;
 
 /* Core root definition */

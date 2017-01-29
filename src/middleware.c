@@ -26,10 +26,6 @@ middleware(auth_basic)
 	if (!request->hdlr_extra)
         request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
 
-	struct request_data *_data = (struct request_data *)request->hdlr_extra;
-	_data->auth.object_id = 1;
-	_data->auth.principal = kore_strdup("eve");
-
 	/* Protect route with basic authentication */
 	if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
 		size_t len;
@@ -41,6 +37,17 @@ middleware(auth_basic)
 		kore_free(report);
 		return_ok();
 	}
+
+	/* Find user part */
+	char *principal = kore_strdup(STATUSPAGE_AUTH);
+	char *split = strchr(principal, ':');
+	split[0] = '\0';
+
+	//TODO: needs free somewhere
+	struct request_data *auth = (struct request_data *)request->hdlr_extra;
+	auth->auth.object_id = 1;
+	auth->auth.principal = principal;
+	// kore_free(principal);
 
     return_ok();
 }
@@ -60,9 +67,9 @@ middleware(auth_jwt)
 
 		/* Verify token */
 		if (jwt_verify(token)) {
-            struct request_data *_data = (struct request_data *)request->hdlr_extra;
-			_data->auth.object_id = 10017;
-			_data->auth.principal = kore_strdup("woei");
+            struct request_data *auth = (struct request_data *)request->hdlr_extra;
+			auth->auth.object_id = 10017;
+			auth->auth.principal = kore_strdup("woei");
 			return_ok();
 		}
     }

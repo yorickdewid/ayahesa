@@ -8,7 +8,8 @@
  * permission of the author.
  */
 
-#include <ayahesa.h>
+#include "../include/ayahesa.h"
+#include "../include/quid.h"
 
 #include <openssl/x509.h>
 #include <openssl/hmac.h>
@@ -16,21 +17,17 @@
 
 #include "base64url.h"
 
-#define TEST_JTI        "00000000-0000-0000-0000-000000000000"
 #define HEADER_ENCODED  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
 
-struct jwt {
-    const char *iss;
-    const char *sub;
-    const char *aud;
-    long long int iat;
-    long long int exp;
-};
-
 static unsigned char *
-jwt_generate_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
+generate_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
 {
     yajl_gen jwt = yajl_gen_alloc(NULL);
+
+    cuuid_t jti;
+    char jti_str[QUID_FULLLEN + 1];
+    quid_create(&jti, IDF_SIGNED | IDF_TAGGED, CLS_CMON, "JWT");
+    quid_tostring(&jti, jti_str);
 
     yajl_gen_map_open(jwt);
     yajl_gen_string(jwt, (const unsigned char *)"iss", 3);
@@ -46,7 +43,7 @@ jwt_generate_payload(const char *issuer, const char *subject, const char *audien
     yajl_gen_string(jwt, (const unsigned char *)"exp", 3);
     yajl_gen_integer(jwt, (long long int)time(NULL) + app_session_lifetime());
     yajl_gen_string(jwt, (const unsigned char *)"jti", 3);
-    yajl_gen_string(jwt, (const unsigned char *)TEST_JTI, strlen(TEST_JTI));
+    yajl_gen_string(jwt, (const unsigned char *)jti_str, QUID_FULLLEN);
     yajl_gen_map_close(jwt);
 
     /* Object to string */
@@ -65,7 +62,7 @@ jwt_generate_payload(const char *issuer, const char *subject, const char *audien
 }
 
 static unsigned char *
-jwt_sign(char *key, size_t key_length, const char *data, size_t *signature_encoded_length)
+sign_payload(char *key, size_t key_length, const char *data, size_t *signature_encoded_length)
 {
     unsigned int signature_len;
     unsigned char signature[EVP_MAX_MD_SIZE];
@@ -100,7 +97,7 @@ jwt_token_new(const char *subject, const char *audience)
     kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
 
     /* Generate payload */
-    payload_encoded = jwt_generate_payload(app_domainname(), subject, audience, &payload_encoded_length);
+    payload_encoded = generate_payload(app_domainname(), subject, audience, &payload_encoded_length);
 
     /*
      * Prepare signature input
@@ -108,7 +105,7 @@ jwt_token_new(const char *subject, const char *audience)
      */
     char *data = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1, sizeof(unsigned char));
     sprintf(data, "%s.%s", header_encoded, payload_encoded);
-    signature_encoded = jwt_sign(rawkey, rawkey_len, data, &signature_encoded_length);
+    signature_encoded = sign_payload(rawkey, rawkey_len, data, &signature_encoded_length);
     kore_free(data);
 
     /* Concat parts */
@@ -121,12 +118,35 @@ jwt_token_new(const char *subject, const char *audience)
     return token;
 }
 
-int
-jwt_verify(char *token)
+static int
+check_signature(char *header, char *payload, char *hash)
 {
     unsigned char *signature_encoded = NULL;
+    char *rawkey = NULL;
     size_t signature_encoded_length;
+    size_t rawkey_len;
+    int ret = 0;
 
+    /* Decode key */
+    kore_base64_decode(app_key(), (u_int8_t **)&rawkey, &rawkey_len);
+
+    /* Calculate hash over incomming token */
+    char *data = (char *)kore_calloc(strlen(header) + 1 + strlen(payload) + 1, sizeof(char));
+    sprintf(data, "%s.%s", header, payload);
+    signature_encoded = sign_payload(rawkey, rawkey_len, data, &signature_encoded_length);
+    kore_free(data);
+
+    /* Compare incomming hash against caculated hash */
+    ret = strcmp((const char *)hash, (const char *)signature_encoded) ? 0 : 1;
+
+    kore_free(signature_encoded);
+    return ret;
+}
+
+int
+// jwt_verify(char *token, struct *jwt)
+jwt_verify(char *token)
+{
     /* Return if no JSON object */
     if (token[0] != 'e' || token[1] != 'y')
         return 0;
@@ -142,23 +162,11 @@ jwt_verify(char *token)
     if (strcmp(parts[0], HEADER_ENCODED))
         return 0;
 
-    char *rawkey = NULL;
-    size_t rawkey_len;
-
-    char *key = app_key();
-    kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
-
-    /* Calculate hash over incomming token */
-    char *data = (char *)kore_calloc(strlen(parts[0]) + 1 + strlen(parts[1]) + 1, sizeof(char));
-    sprintf(data, "%s.%s", parts[0], parts[1]);
-    signature_encoded = jwt_sign(rawkey, rawkey_len, data, &signature_encoded_length);
-    kore_free(data);
-
-    /* Compare incomming hash against caculated hash */
-    if (strcmp((const char *)parts[2], (const char *)signature_encoded)) {
-        kore_free(signature_encoded);
+    /* Bail if signature is not mached */
+    if (!check_signature(parts[0], parts[1], parts[2]))
         return 0;
-    }
+
+
 
     size_t payload_len;
     unsigned char *payload = (unsigned char *)kore_calloc(((3 * strlen(parts[1])) / 4 ) + 1, sizeof(unsigned char));
@@ -176,7 +184,6 @@ jwt_verify(char *token)
     if ((long long int)time(NULL) < YAJL_GET_INTEGER(obj_issued)) {
         yajl_tree_free(jwt);
         kore_free(payload);
-        kore_free(signature_encoded);
         return 0;
     }
 
@@ -184,12 +191,10 @@ jwt_verify(char *token)
     if ((long long int)time(NULL) > YAJL_GET_INTEGER(obj_expire)) {
         yajl_tree_free(jwt);
         kore_free(payload);
-        kore_free(signature_encoded);
         return 0;
     }
 
     yajl_tree_free(jwt);
     kore_free(payload);
-    kore_free(signature_encoded);
     return 1;
 }
