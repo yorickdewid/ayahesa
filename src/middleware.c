@@ -75,12 +75,18 @@ middleware(auth_jwt)
 			auth->auth.object_id = 10017;
 			auth->auth.principal = kore_strdup("woei");
 
+			/* Cleanup */
 			kore_free(jwt.iss);
 			kore_free(jwt.sub);
 			kore_free(jwt.aud);
 
 			return_ok();
 		}
+
+		/* Cleanup */
+		kore_free(jwt.iss);
+		kore_free(jwt.sub);
+		kore_free(jwt.aud);
     }
 
 	return_error();

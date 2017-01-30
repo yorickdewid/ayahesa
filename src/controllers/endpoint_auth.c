@@ -67,5 +67,7 @@ validate_claim(char *user, char *secret) {
     if (!strcmp(user, "woei@quenza.net") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
         return 110217;
 
+    //TODO: replace stub with persistent storage validation
+
     return 0;
 }
