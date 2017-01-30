@@ -79,11 +79,12 @@ struct request_data {
 };
 
 struct jwt {
-    const char *iss;
-    const char *sub;
-    const char *aud;
-    long long int iat;
-    long long int exp;
+    char *iss;          /* issuer */
+    char *sub;          /* Subject */
+    char *aud;          /* Audience */
+    long long int oid;  /* Object ID */
+    long long int iat;  /* Issued at */
+    long long int exp;  /* Expired at */
 };
 
 typedef struct app_tree app_t;
@@ -121,7 +122,7 @@ int jrpc_write_string(struct jsonrpc_request *, void *);
 /*
  * JWT operations
  */
-char *jwt_token_new(const char *subject, const char *audience);
-int jwt_verify(char *token);
+char *jwt_token_new(struct jwt *jwt);
+int jwt_verify(char *, struct jwt *);
 
 #endif // _AYAHESA_H_

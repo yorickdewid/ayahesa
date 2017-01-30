@@ -10,16 +10,9 @@
 
 #include <ayahesa.h>
 
-static void websocket_connect(struct connection *);
-static void websocket_disconnect(struct connection *);
-static void websocket_message(struct connection *, u_int8_t, void *, size_t);
-
-/* Websocket callbacks. */
-struct kore_wscbs wscbs = {
-	websocket_connect,
-	websocket_message,
-	websocket_disconnect
-};
+void websocket_connect(struct connection *);
+void websocket_disconnect(struct connection *);
+void websocket_message(struct connection *, u_int8_t, void *, size_t);
 
 /**
  * Message controller
@@ -30,24 +23,24 @@ struct kore_wscbs wscbs = {
 controller(msg)
 {
     /* Perform the websocket handshake, passing our callbacks. */
-	kore_websocket_handshake(request, &wscbs);
+	kore_websocket_handshake(request, "websocket_connect", "websocket_message", "websocket_disconnect");
     return_ok();
 }
 
 /* Called whenever we get a new websocket connection. */
-static void
+void
 websocket_connect(struct connection *c)
 {
 	kore_websocket_broadcast(c, WEBSOCKET_OP_TEXT, "New user joins chat", 19, WEBSOCKET_BROADCAST_LOCAL);
 }
 
-static void
+void
 websocket_message(struct connection *c, u_int8_t op, void *data, size_t len)
 {
 	kore_websocket_broadcast(c, op, data, len, WEBSOCKET_BROADCAST_LOCAL);
 }
 
-static void
+void
 websocket_disconnect(struct connection *c)
 {
 	kore_websocket_broadcast(c, WEBSOCKET_OP_TEXT, "User left chat", 14, WEBSOCKET_BROADCAST_LOCAL);

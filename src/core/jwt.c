@@ -20,43 +20,51 @@
 #define HEADER_ENCODED  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
 
 static unsigned char *
-generate_payload(const char *issuer, const char *subject, const char *audience, size_t *payload_encoded_length)
+generate_payload(struct jwt *jwt, size_t *payload_encoded_length)
 {
-    yajl_gen jwt = yajl_gen_alloc(NULL);
+    yajl_gen tree = yajl_gen_alloc(NULL);
+    const char *issuer = app_domainname();
+    long long int issued_at = time(NULL);
+    long long int expire_at = issued_at + app_session_lifetime();
 
     cuuid_t jti;
     char jti_str[QUID_FULLLEN + 1];
     quid_create(&jti, IDF_SIGNED | IDF_TAGGED, CLS_CMON, "JWT");
     quid_tostring(&jti, jti_str);
 
-    yajl_gen_map_open(jwt);
-    yajl_gen_string(jwt, (const unsigned char *)"iss", 3);
-    yajl_gen_string(jwt, (const unsigned char *)issuer, strlen(issuer));
-    yajl_gen_string(jwt, (const unsigned char *)"sub", 3);
-    yajl_gen_string(jwt, (const unsigned char *)subject, strlen(subject));
-    yajl_gen_string(jwt, (const unsigned char *)"oid", 3);
-    yajl_gen_string(jwt, (const unsigned char *)"10017", 5);
-    yajl_gen_string(jwt, (const unsigned char *)"aud", 3);
-    yajl_gen_string(jwt, (const unsigned char *)audience, strlen(audience));
-    yajl_gen_string(jwt, (const unsigned char *)"iat", 3);
-    yajl_gen_integer(jwt, (long long int)time(NULL));
-    yajl_gen_string(jwt, (const unsigned char *)"exp", 3);
-    yajl_gen_integer(jwt, (long long int)time(NULL) + app_session_lifetime());
-    yajl_gen_string(jwt, (const unsigned char *)"jti", 3);
-    yajl_gen_string(jwt, (const unsigned char *)jti_str, QUID_FULLLEN);
-    yajl_gen_map_close(jwt);
+    yajl_gen_map_open(tree);
+    yajl_gen_string(tree, (const unsigned char *)"iss", 3);
+    yajl_gen_string(tree, (const unsigned char *)issuer, strlen(issuer));
+    yajl_gen_string(tree, (const unsigned char *)"sub", 3);
+    yajl_gen_string(tree, (const unsigned char *)jwt->sub, strlen(jwt->sub));
+    yajl_gen_string(tree, (const unsigned char *)"oid", 3);
+    yajl_gen_integer(tree, jwt->oid);
+    yajl_gen_string(tree, (const unsigned char *)"aud", 3);
+    yajl_gen_string(tree, (const unsigned char *)jwt->aud, strlen(jwt->aud));
+    yajl_gen_string(tree, (const unsigned char *)"iat", 3);
+    yajl_gen_integer(tree, issued_at);
+    yajl_gen_string(tree, (const unsigned char *)"exp", 3);
+    yajl_gen_integer(tree, expire_at);
+    yajl_gen_string(tree, (const unsigned char *)"jti", 3);
+    yajl_gen_string(tree, (const unsigned char *)jti_str, QUID_FULLLEN);
+    yajl_gen_map_close(tree);
 
     /* Object to string */
     const unsigned char *payload;
     size_t payload_len;
-    yajl_gen_get_buf(jwt, &payload, &payload_len);
+    yajl_gen_get_buf(tree, &payload, &payload_len);
     
     /* String encode */
     unsigned char *payload_encoded = (unsigned char *)kore_calloc(((4 * payload_len) / 3 ) + 2, sizeof(unsigned char));
     base64url_encode(payload, payload_len, payload_encoded, payload_encoded_length);
 
-    yajl_gen_clear(jwt);
-    yajl_gen_free(jwt);
+    yajl_gen_clear(tree);
+    yajl_gen_free(tree);
+
+    /* Complete the JWT */
+    jwt->iss = issuer;
+    jwt->iat = issued_at;
+    jwt->exp = expire_at;
 
     return payload_encoded;
 }
@@ -80,7 +88,7 @@ sign_payload(char *key, size_t key_length, const char *data, size_t *signature_e
 }
 
 char *
-jwt_token_new(const char *subject, const char *audience)
+jwt_token_new(struct jwt *jwt)
 {
     /* Hard coded header */
     unsigned char *header_encoded = (unsigned char *)HEADER_ENCODED;
@@ -97,7 +105,7 @@ jwt_token_new(const char *subject, const char *audience)
     kore_base64_decode(key, (u_int8_t **)&rawkey, &rawkey_len);
 
     /* Generate payload */
-    payload_encoded = generate_payload(app_domainname(), subject, audience, &payload_encoded_length);
+    payload_encoded = generate_payload(jwt, &payload_encoded_length);
 
     /*
      * Prepare signature input
@@ -144,8 +152,7 @@ check_signature(char *header, char *payload, char *hash)
 }
 
 int
-// jwt_verify(char *token, struct *jwt)
-jwt_verify(char *token)
+jwt_verify(char *token, struct jwt *jwt)
 {
     /* Return if no JSON object */
     if (token[0] != 'e' || token[1] != 'y')
@@ -166,35 +173,48 @@ jwt_verify(char *token)
     if (!check_signature(parts[0], parts[1], parts[2]))
         return 0;
 
-
-
     size_t payload_len;
     unsigned char *payload = (unsigned char *)kore_calloc(((3 * strlen(parts[1])) / 4 ) + 1, sizeof(unsigned char));
     base64url_decode((const unsigned char *)parts[1], strlen(parts[1]), payload, &payload_len);
     payload[payload_len] = '\0';
 
+    const char *path_iss[] = {"iss", NULL};
+    const char *path_sub[] = {"sub", NULL};
+    const char *path_aud[] = {"aud", NULL};
+    const char *path_oid[] = {"oid", NULL};
     const char *path_iat[] = {"iat", NULL};
     const char *path_exp[] = {"exp", NULL};
 
-    yajl_val jwt = yajl_tree_parse((const char *)payload, NULL, 0);
-    yajl_val obj_issued = yajl_tree_get(jwt, path_iat, yajl_t_number);
-    yajl_val obj_expire = yajl_tree_get(jwt, path_exp, yajl_t_number);
+    yajl_val tree = yajl_tree_parse((const char *)payload, NULL, 0);
+    yajl_val obj_issuer = yajl_tree_get(tree, path_iss, yajl_t_string);
+    yajl_val obj_subject = yajl_tree_get(tree, path_sub, yajl_t_string);
+    yajl_val obj_audience = yajl_tree_get(tree, path_aud, yajl_t_string);
+    yajl_val obj_object = yajl_tree_get(tree, path_oid, yajl_t_number);
+    yajl_val obj_issued = yajl_tree_get(tree, path_iat, yajl_t_number);
+    yajl_val obj_expire = yajl_tree_get(tree, path_exp, yajl_t_number);
+
+    jwt->iss = kore_strdup(YAJL_GET_STRING(obj_issuer));
+    jwt->sub = kore_strdup(YAJL_GET_STRING(obj_subject));
+    jwt->aud = kore_strdup(YAJL_GET_STRING(obj_audience));
+    jwt->oid = YAJL_GET_INTEGER(obj_object);
+    jwt->iat = YAJL_GET_INTEGER(obj_issued);
+    jwt->exp = YAJL_GET_INTEGER(obj_expire);
 
     /* Token not yet active */
     if ((long long int)time(NULL) < YAJL_GET_INTEGER(obj_issued)) {
-        yajl_tree_free(jwt);
+        yajl_tree_free(tree);
         kore_free(payload);
         return 0;
     }
 
     /* Token expired */
     if ((long long int)time(NULL) > YAJL_GET_INTEGER(obj_expire)) {
-        yajl_tree_free(jwt);
+        yajl_tree_free(tree);
         kore_free(payload);
         return 0;
     }
 
-    yajl_tree_free(jwt);
+    yajl_tree_free(tree);
     kore_free(payload);
     return 1;
 }

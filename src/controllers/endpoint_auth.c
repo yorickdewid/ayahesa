@@ -10,12 +10,7 @@
 
 #include <ayahesa.h>
 
-#include "module.h"
-
-#define TEST_AUD \
-    MOD_MODULE1 \
-    MOD_MODULE3 \
-    MOD_MODULE4
+#define TEST_AUD "C1M0L0P2"
 
 static int validate_claim(char *user, char *secret);
 
@@ -28,8 +23,10 @@ static int validate_claim(char *user, char *secret);
  */
 jrpc_method(authenticate)
 {
+    struct jwt jwt;
     yajl_val obj_user;
     yajl_val obj_secret;
+    int object_id;
 
     if (YAJL_IS_OBJECT(request->params)) {
         const char	*path_user[] = {"user", NULL};
@@ -49,21 +46,26 @@ jrpc_method(authenticate)
         return jsonrpc_error(request, -3, "Parameter secret requires string");
 
     /* Generate new JWT token */
-    if (!validate_claim(YAJL_GET_STRING(obj_user), YAJL_GET_STRING(obj_secret)))
+    if (!(object_id = validate_claim(YAJL_GET_STRING(obj_user), YAJL_GET_STRING(obj_secret))))
         return jsonrpc_error(request, -4, "Authentication failed");
 
-    char *token = jwt_token_new(YAJL_GET_STRING(obj_user), TEST_AUD);
+    /* Prepare token fields */
+    jwt.sub = YAJL_GET_STRING(obj_user);
+    jwt.aud = TEST_AUD;
+    jwt.oid = object_id;
+
+    char *token = jwt_token_new(&jwt);
     int ret = jsonrpc_result(request, jrpc_write_string, token);
     kore_free(token);
 
     return ret;
 }
 
-/* Validate user claim, return 0 on success */
+/* Validate user claim, return object id on success */
 static int
 validate_claim(char *user, char *secret) {
     if (!strcmp(user, "woei@quenza.net") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
-        return 1;
+        return 110217;
 
     return 0;
 }
