@@ -32,6 +32,7 @@ int		aya_status(struct http_request *);
 #endif // STATUSPAGE
 
 #if defined(OPT_ROUTES)
+int     aya_readme(struct http_request *);
 int		aya_shutdown_parent(struct http_request *);
 int		aya_fox(struct http_request *);
 int		aya_teapot(struct http_request *);
@@ -45,6 +46,11 @@ aya_init(int state)
 	switch (state) {
 		case KORE_MODULE_LOAD:
 			kore_log(LOG_NOTICE, "server core " SERVLET_VERSION);
+			kore_log(LOG_NOTICE, "running Kore/%d.%d.%d-%s",
+				KORE_VERSION_MAJOR,
+				KORE_VERSION_MINOR,
+				KORE_VERSION_PATCH,
+				KORE_VERSION_STATE);
 			kore_log(LOG_NOTICE, "load ayahesa");
 			application_create(&root_app);
 			application_config(root_app, CONFIG);
@@ -182,6 +188,28 @@ aya_status(struct http_request *request)
 #endif // STATUSPAGE
 
 #if defined(OPT_ROUTES)
+
+int
+aya_readme(struct http_request *request)
+{
+    FILE *fp = fopen("README.md", "r");
+    if (!fp)
+        return notfound(request);
+
+    /* Determine file size */
+    fseek(fp, 0, SEEK_END);
+    size_t file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    char *string = kore_malloc(file_size + 1);
+    fread(string, file_size, 1, fp);
+    fclose(fp);
+
+	http_response_header(request, "content-type", "text/plain");
+	http_response(request, 200, string, file_size);
+	kore_free(string);
+	return_ok();
+}
 
 int
 aya_shutdown_parent(struct http_request *request)

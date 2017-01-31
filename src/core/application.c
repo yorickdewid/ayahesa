@@ -68,10 +68,6 @@ application_create(app_t **app)
     root->child.ptr[TREE_CACHE]->key = NULL;
     tree_new_root(root->child.ptr[TREE_CACHE]);
 
-    /* Open file for logging operations */
-    // app_storage()
-    log_fp = fopen("store/ayahesa.log", "a+");
-
     kore_log(LOG_NOTICE, "application instance %s", root->value.str);
 
     *app = root; 
@@ -194,6 +190,8 @@ validate_config(app_t *app)
 void
 application_config(app_t *app, const char *configfile)
 {
+    char logfile[255];
+
     assert(app != NULL);
 
     if (ini_parse(configfile, load_config_tree, (void *)app) < 0) {
@@ -204,9 +202,9 @@ application_config(app_t *app, const char *configfile)
     /* Check and default config */
     validate_config(app);
 
-    //TODO: remove
-    // tree_dump(app->child.ptr[TREE_CONFIG]);
-    // tree_dump(app->child.ptr[TREE_CACHE]);
+    /* Open file for logging operations */
+    snprintf(logfile, 255, "%s/ayahesa.log", app_storage());
+    log_fp = fopen(logfile, "a+");
 }
 
 /*
