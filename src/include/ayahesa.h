@@ -40,6 +40,12 @@
 
 #define T_FLAG_READONLY 0x1
 
+/* Event types */
+typedef enum {
+    EVENT_AUTH_FAILED = 10,
+    EVENT_AUTH_SUCCESS,
+} event_type_t;
+
 /*
  * Application internal structure
  *
@@ -87,6 +93,11 @@ struct jwt {
     long long int exp;  /* Expired at */
 };
 
+struct aya_trigger {
+    event_type_t event;
+    void (*cb)(void *);
+};
+
 typedef struct app_tree app_t;
 
 /* Core root definition */
@@ -95,6 +106,7 @@ extern app_t *root_app;
 /*
  * Application operations
  */
+void            app_log(const char *);
 char *          app_instance(void);
 char *          app_uptime(void);
 unsigned int    app_request_count(void);
@@ -113,6 +125,11 @@ const char *    http_get_cookie(struct http_request *, const char *);
 int             http_basic_auth(struct http_request *, const char *);
 char *          http_remote_addr(struct http_request *);
 char *          http_report(int code, char *title, size_t *length);
+
+/*
+ * Events
+ */
+void fire(event_type_t type, void *data);
 
 /*
  * JRPC helpers

@@ -72,8 +72,8 @@ middleware(auth_jwt)
 
 			//TODO: Free internals
             struct request_data *auth = (struct request_data *)request->hdlr_extra;
-			auth->auth.object_id = 10017;
-			auth->auth.principal = kore_strdup("woei");
+			auth->auth.object_id = jwt.oid;
+			auth->auth.principal = kore_strdup(jwt.sub);
 
 			/* Cleanup */
 			kore_free(jwt.iss);
@@ -91,4 +91,3 @@ middleware(auth_jwt)
 
 	return_error();
 }
-

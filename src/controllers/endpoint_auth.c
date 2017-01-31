@@ -46,13 +46,20 @@ jrpc_method(authenticate)
         return jsonrpc_error(request, -3, "Parameter secret requires string");
 
     /* Generate new JWT token */
-    if (!(object_id = validate_claim(YAJL_GET_STRING(obj_user), YAJL_GET_STRING(obj_secret))))
+    if (!(object_id = validate_claim(YAJL_GET_STRING(obj_user), YAJL_GET_STRING(obj_secret)))) {
+        /* Fire failed auth event */
+        fire(EVENT_AUTH_FAILED, YAJL_GET_STRING(obj_user));
+
         return jsonrpc_error(request, -4, "Authentication failed");
+    }
 
     /* Prepare token fields */
     jwt.sub = YAJL_GET_STRING(obj_user);
     jwt.aud = TEST_AUD;
     jwt.oid = object_id;
+
+    /* Fire success auth event */
+    fire(EVENT_AUTH_SUCCESS, &jwt);
 
     char *token = jwt_token_new(&jwt);
     int ret = jsonrpc_result(request, jrpc_write_string, token);

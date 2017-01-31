@@ -223,6 +223,15 @@ application_release(app_t *app)
 //////////////////////////////////////////////////
 
 /*
+ * Log action
+ */
+void
+app_log(const char *message)
+{
+	kore_log(LOG_NOTICE, message);
+}
+
+/*
  * Application uptime
  */
 char *
