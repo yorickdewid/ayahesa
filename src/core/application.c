@@ -69,6 +69,7 @@ application_create(app_t **app)
     tree_new_root(root->child.ptr[TREE_CACHE]);
 
     /* Open file for logging operations */
+    // app_storage()
     log_fp = fopen("store/ayahesa.log", "a+");
 
     kore_log(LOG_NOTICE, "application instance %s", root->value.str);
@@ -306,7 +307,7 @@ app_request_count(void)
 unsigned int
 app_active_conncount(void)
 {
-    return internal_counter.conn_active - 1;
+    return internal_counter.conn_active;
 }
 
 /*
@@ -367,6 +368,18 @@ app_key(void)
     tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.key", &app_key);
 
     return app_key;
+}
+
+/*
+ * Application storage location
+ */
+char *
+app_storage(void)
+{
+    char *app_storage = NULL;
+    tree_get_str(root_app->child.ptr[TREE_CONFIG], "storage", &app_storage);
+
+    return app_storage;
 }
 
 /*

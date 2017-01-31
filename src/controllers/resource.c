@@ -58,7 +58,7 @@ controller(resource)
         return_ok();
     }
 
-    snprintf(filename, 255, "store/%d-%s.%s", auth->auth.object_id, uuid, ext);
+    snprintf(filename, 255, "%s/app/%d-%s.%s", app_storage(), auth->auth.object_id, uuid, ext);
 
     char *string = fetch_file(filename, &file_size);
     if (!string) {

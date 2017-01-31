@@ -117,6 +117,7 @@ char *          app_environment(void);
 int             app_session_lifetime(void);
 const char *    app_domainname(void);
 char *          app_key(void);
+char *          app_storage(void);
 
 /*
  * HTTP helpers

@@ -120,6 +120,7 @@ aya_status(struct http_request *request)
 		"<tr><td>Environment</td><td>%s</td></tr>"
 		"<tr><td>Session lifetime</td><td>%d</td></tr>"
 		"<tr><td>Debug</td><td>%s</td></tr>"
+		"<tr><td>Storage</td><td>%s/</td></tr>"
 		"<tr><th colspan=\"2\">Environment</th></tr>"
 		"<tr><td>Method</td><td>%s</td></tr>"
 		"<tr><td>Path</td><td>%s</td></tr>"
@@ -138,6 +139,7 @@ aya_status(struct http_request *request)
 		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
 		"<tr><td>Servlet version</td><td>" SERVLET_VERSION "</td></tr>"
+		"<tr><td>Accelerator version</td><td>Kore/%d.%d.%d-%s</td></tr>"
 		"</table>"
 		"</body>"
 		"</html>";
@@ -154,6 +156,7 @@ aya_status(struct http_request *request)
 		app_environment(),
 		app_session_lifetime(),
 		app_isdebug() ? "True" : "False",
+		app_storage(),
 		http_method_text(request->method),
 		request->path,
 		request->query_string,
@@ -167,7 +170,8 @@ aya_status(struct http_request *request)
 		app_uptime(),
 		app_request_count(),
 		app_active_conncount(),
-		kore_time_to_date(time(NULL)));
+		kore_time_to_date(time(NULL)),
+		KORE_VERSION_MAJOR, KORE_VERSION_MINOR, KORE_VERSION_PATCH, KORE_VERSION_STATE);
 
 	http_response_header(request, "content-type", "text/html");
 	http_response(request, 200, buffer, strlen(buffer));
