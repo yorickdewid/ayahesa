@@ -85,7 +85,7 @@ jrpc_method(jwt_authenticate)
     jwt.oid = object_id;
 
     /* Fire success auth event */
-    fire(EVENT_AUTH_SUCCESS, &jwt);
+    fire(EVENT_AUTH_SUCCESS, jwt.sub);
 
     char *token = jwt_token_new(&jwt);
     int ret = jsonrpc_result(request, jrpc_write_jwt, token);

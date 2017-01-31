@@ -22,13 +22,16 @@
 
 #include <ayahesa.h>
 
-static void
-trigger_log(void *data)
+/* Default log trigger */
+trigger(auth_success)
 {
-    app_log("Object authenicated");
+    /* Subject is passed */
+    const char *subject = (const char *)data;
+
+    app_log("%s authenicated", subject);
 }
 
 struct aya_trigger trigger[] = {
-    {EVENT_AUTH_SUCCESS, &trigger_log},
+    {EVENT_AUTH_SUCCESS, &trigger_auth_success},
     {0, NULL},
 };

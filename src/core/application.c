@@ -233,12 +233,13 @@ application_release(app_t *app)
  * Log action
  */
 void
-app_log(const char *message)
+app_log(const char *message, ...)
 {
     time_t timer;
     char buffer[32];
     struct tm* tm_info;
-   
+    va_list arglist;
+
 	kore_log(LOG_NOTICE, message);
     if (log_fp) {
         time(&timer);
@@ -248,7 +249,11 @@ app_log(const char *message)
         fputs("[", log_fp);
         fputs(buffer, log_fp);
         fputs("] ", log_fp);
-        fputs(message, log_fp);
+
+        va_start(arglist, message);
+        vfprintf(log_fp, message, arglist);
+        va_end(arglist);
+
         fputs("\n", log_fp);
     }
 }

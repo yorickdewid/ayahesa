@@ -106,7 +106,7 @@ extern app_t *root_app;
 /*
  * Application operations
  */
-void            app_log(const char *);
+void            app_log(const char *, ...);
 char *          app_instance(void);
 char *          app_uptime(void);
 unsigned int    app_request_count(void);

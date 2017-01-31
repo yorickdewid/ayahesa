@@ -44,6 +44,14 @@
 	}
 
 /*
+ * Framework triggers
+ */
+
+#define trigger(t) \
+    void trigger_##t(void *); \
+    void trigger_##t(void *data)
+
+/*
  * HTTP middleware
  */
 
