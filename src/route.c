@@ -119,7 +119,9 @@ endpoint(auth)
 	jrpc_info("Authentication and authorization functions");
 
 	/* Call controller */
-	jrpc_invoke("authenticate", authenticate);
+	jrpc_invoke("authenticate", jwt_authenticate);
+	jrpc_invoke("refresh", jwt_refresh);
+	jrpc_invoke("delete", jwt_delete);
 
 	/* No method found */
 	jrpc_return_error();

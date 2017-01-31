@@ -12,16 +12,41 @@
 
 #define TEST_AUD "C1M0L0P2"
 
-static int validate_claim(char *user, char *secret);
+/* Validate user claim, return object id on success */
+static int
+validate_claim(char *user, char *secret) {
+    //TODO: replace stub with persistent storage validation
+    if (!strcmp(user, "woei@quenza.net") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
+        return 110217;
+
+    return 0;
+}
+
+static int
+jrpc_write_jwt(struct jsonrpc_request *req, void *ctx)
+{
+	const unsigned char *str = (unsigned char *)ctx;
+
+    yajl_gen_map_open(req->gen);
+    yajl_gen_string(req->gen, (const unsigned char *)"token_type", 10);
+    yajl_gen_string(req->gen, (const unsigned char *)"Bearer", 6);
+    yajl_gen_string(req->gen, (const unsigned char *)"expires_in", 10);
+    yajl_gen_integer(req->gen, app_session_lifetime());
+    yajl_gen_string(req->gen, (const unsigned char *)"token", 5);
+    yajl_gen_string(req->gen, str, strlen((const char *)str));
+
+	return yajl_gen_map_close(req->gen);
+}
+
 
 /**
  * Authenticate principal and return JWT on
  * success.
  *
- * @param  object|none
+ * @param  object
  * @return string
  */
-jrpc_method(authenticate)
+jrpc_method(jwt_authenticate)
 {
     struct jwt jwt;
     yajl_val obj_user;
@@ -47,6 +72,7 @@ jrpc_method(authenticate)
 
     /* Generate new JWT token */
     if (!(object_id = validate_claim(YAJL_GET_STRING(obj_user), YAJL_GET_STRING(obj_secret)))) {
+
         /* Fire failed auth event */
         fire(EVENT_AUTH_FAILED, YAJL_GET_STRING(obj_user));
 
@@ -62,19 +88,31 @@ jrpc_method(authenticate)
     fire(EVENT_AUTH_SUCCESS, &jwt);
 
     char *token = jwt_token_new(&jwt);
-    int ret = jsonrpc_result(request, jrpc_write_string, token);
+    int ret = jsonrpc_result(request, jrpc_write_jwt, token);
     kore_free(token);
 
     return ret;
 }
 
-/* Validate user claim, return object id on success */
-static int
-validate_claim(char *user, char *secret) {
-    if (!strcmp(user, "woei@quenza.net") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
-        return 110217;
+/**
+ * Request new JWT with refresh token
+ * and old JWT.
+ *
+ * @param  object
+ * @return string
+ */
+jrpc_method(jwt_refresh)
+{
+    return jsonrpc_error(request, -5, "Not Implemented");
+}
 
-    //TODO: replace stub with persistent storage validation
-
-    return 0;
+/**
+ * Delete token and session.
+ *
+ * @param  object
+ * @return string
+ */
+jrpc_method(jwt_delete)
+{
+    return jsonrpc_error(request, -5, "Not Implemented");
 }

@@ -13,7 +13,7 @@
 | Event Triggers
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
+| Here is where you can register event triggers for your application. These
 | routes are called when a configuration URI is hit. Keep the routes
 | simple and move any operations or actions into a controller or unit 
 | method. Now create something great!

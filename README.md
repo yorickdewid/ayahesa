@@ -1,4 +1,5 @@
 # Ayahesa
+[![Build Status](https://travis-ci.org/yorickdewid/ayahesa.svg?branch=master)](https://travis-ci.org/yorickdewid/ayahesa)
 
 High performance scalable web framework. Ayahesa is loosely based on the MVC model and supports modern web features. The framework is build on top of [Kore](https://github.com/jorisvink/kore) application framework. The project is written in C99 and runs on most UNIX like operating systems.
 

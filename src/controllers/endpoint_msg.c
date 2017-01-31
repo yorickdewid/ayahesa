@@ -23,7 +23,10 @@ void websocket_message(struct connection *, u_int8_t, void *, size_t);
 controller(msg)
 {
     /* Perform the websocket handshake, passing our callbacks. */
-	kore_websocket_handshake(request, "websocket_connect", "websocket_message", "websocket_disconnect");
+	kore_websocket_handshake(request,
+		"websocket_connect",      /* OnOpen */
+		"websocket_message",      /* OnMessage */
+		"websocket_disconnect");  /* OnClose */
     return_ok();
 }
 
