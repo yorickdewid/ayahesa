@@ -121,7 +121,7 @@ endpoint(auth)
 	/* Call controller */
 	jrpc_invoke("authenticate", jwt_authenticate);
 	jrpc_invoke("refresh", jwt_refresh);
-	jrpc_invoke("delete", jwt_delete);
+	jrpc_invoke("revoke", jwt_revoke);
 
 	/* No method found */
 	jrpc_return_error();

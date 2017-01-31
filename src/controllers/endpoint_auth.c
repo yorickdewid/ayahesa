@@ -107,12 +107,12 @@ jrpc_method(jwt_refresh)
 }
 
 /**
- * Delete token and session.
+ * Revoke token and session.
  *
  * @param  object
  * @return string
  */
-jrpc_method(jwt_delete)
+jrpc_method(jwt_revoke)
 {
     return jsonrpc_error(request, -5, "Not Implemented");
 }

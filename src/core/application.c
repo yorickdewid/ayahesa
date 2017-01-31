@@ -28,6 +28,8 @@ struct {
     unsigned int conn_active;
 } internal_counter;
 
+static FILE *log_fp;
+
 /*
  * Bootstrap the application
  */
@@ -65,6 +67,9 @@ application_create(app_t **app)
     root->child.ptr[TREE_CACHE]->type = T_NULL;
     root->child.ptr[TREE_CACHE]->key = NULL;
     tree_new_root(root->child.ptr[TREE_CACHE]);
+
+    /* Open file for logging operations */
+    log_fp = fopen("store/ayahesa.log", "a+");
 
     kore_log(LOG_NOTICE, "application instance %s", root->value.str);
 
@@ -212,6 +217,8 @@ application_release(app_t *app)
     if (app == NULL)
         return;
 
+    fclose(log_fp);
+
     /* Traverse tree and free pointers */
     tree_free(app);
 
@@ -228,7 +235,22 @@ application_release(app_t *app)
 void
 app_log(const char *message)
 {
+    time_t timer;
+    char buffer[32];
+    struct tm* tm_info;
+   
 	kore_log(LOG_NOTICE, message);
+    if (log_fp) {
+        time(&timer);
+        tm_info = localtime(&timer);
+        strftime(buffer, 32, "%Y-%m-%d %H:%M:%S", tm_info);
+
+        fputs("[", log_fp);
+        fputs(buffer, log_fp);
+        fputs("] ", log_fp);
+        fputs(message, log_fp);
+        fputs("\n", log_fp);
+    }
 }
 
 /*
