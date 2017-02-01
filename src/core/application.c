@@ -23,6 +23,8 @@ void application_release(app_t *);
 void application_prelude(struct connection *);
 void application_postproc(struct connection *c);
 
+void database_init(void);
+
 struct {
 	time_t boot;
 	unsigned int req_count;
@@ -216,6 +218,9 @@ void
 application_bootstrap(app_t *app)
 {
     int i;
+
+    /* Initialize components */
+    database_init();
 
     /* Call load hooks */
     for (i = 0; strlen(providers[i].module) > 0 ; ++i) {

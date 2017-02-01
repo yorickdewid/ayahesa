@@ -14,13 +14,14 @@ addons:
     packages:
     - libssl-dev
     - libyajl-dev
+    - libpq-dev
 
 before_script:
   - git clone https://github.com/jorisvink/kore
 
 script:
   - cd kore
-  - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\n/' Makefile
+  - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\nPGSQL=1\n/' Makefile
   - make && sudo make install
   - cd ..
   - kore -v
