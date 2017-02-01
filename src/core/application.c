@@ -18,6 +18,7 @@
 
 void application_create(app_t **);
 void application_config(app_t *, const char *);
+void application_bootstrap(app_t *app);
 void application_release(app_t *);
 void application_prelude(struct connection *);
 void application_postproc(struct connection *c);
@@ -28,6 +29,7 @@ struct {
     unsigned int conn_active;
 } internal_counter;
 
+extern struct aya_providers providers[];
 static FILE *log_fp;
 
 /*
@@ -208,13 +210,43 @@ application_config(app_t *app, const char *configfile)
 }
 
 /*
+ * Bootstrap additional components
+ */
+void
+application_bootstrap(app_t *app)
+{
+    int i;
+
+    /* Call load hooks */
+    for (i = 0; strlen(providers[i].module) > 0 ; ++i) {
+            if (providers[i].cb_load == NULL)
+                continue;
+
+        kore_log(LOG_NOTICE, "boostrap %s", providers[i].module);
+        providers[i].cb_load();
+    }
+}
+
+/*
  * Release application
  */
 void
 application_release(app_t *app)
 {
+    int i;
+
+    /* Is already closed */
     if (app == NULL)
         return;
+
+    /* Call unload hooks */
+    for (i = 0; strlen(providers[i].module) > 0 ; ++i) {
+            if (providers[i].cb_unload == NULL)
+                continue;
+
+        kore_log(LOG_NOTICE, "unload %s", providers[i].module);
+        providers[i].cb_unload();
+    }
 
     fclose(log_fp);
 
@@ -222,6 +254,7 @@ application_release(app_t *app)
     tree_free(app);
 
     kore_free(app);
+    app = NULL;
 }
 
 //////////////////////////////////////////////////

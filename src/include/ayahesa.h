@@ -20,6 +20,7 @@
 #include <kore/kore.h>
 #include <kore/http.h>
 #include <kore/jsonrpc.h>
+#include <kore/pgsql.h>
 
 #define VERSION "Ayahesa/0.6"
 #define CONFIG  "conf/framework.ini"
@@ -96,6 +97,12 @@ struct jwt {
 struct aya_trigger {
     event_type_t event;
     void (*cb)(void *);
+};
+
+struct aya_providers {
+    char module[64];
+    void (*cb_load)(void);
+    void (*cb_unload)(void);
 };
 
 typedef struct app_tree app_t;

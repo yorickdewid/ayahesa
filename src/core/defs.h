@@ -21,10 +21,6 @@
 #define return_error() \
 	return KORE_RESULT_ERROR;
 
-#define KORE_VERSION \
-		KORE_VERSION_PATCH " - " \
-		KORE_VERSION_STATE
-
 #define http_get() \
 	if (request->method != HTTP_METHOD_GET) { \
 		http_response_header(request, "allow", "GET"); \

@@ -8,9 +8,9 @@
  * permission of the author.
  */
 
-/*
+ /*
 |--------------------------------------------------------------------------
-| Event Triggers
+| Application Provider
 |--------------------------------------------------------------------------
 |
 | Here is where you can register event triggers for your application.
@@ -22,16 +22,7 @@
 
 #include <ayahesa.h>
 
-/* Default log trigger */
-trigger(auth_success)
-{
-    /* Subject is passed */
-    const char *subject = (const char *)data;
-
-    app_log("%s authenicated", subject);
-}
-
-struct aya_trigger trigger[] = {
-    {EVENT_AUTH_SUCCESS, &trigger_auth_success},
-    {0, NULL},
+struct aya_providers providers[] = {
+    {"quid", NULL, NULL},
+    {"", NULL, NULL},
 };

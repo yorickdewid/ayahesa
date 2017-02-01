@@ -12,9 +12,14 @@
 
 #define TEST_AUD "C1M0L0P2"
 
+extern int db_user(void);
+
 /* Validate user claim, return object id on success */
 static int
 validate_claim(char *user, char *secret) {
+
+    // db_user();
+
     //TODO: replace stub with persistent storage validation
     if (!strcmp(user, "woei@quenza.net") && !strcmp(secret, "eZXn0haqu4sksxu2L9puUZNBCwqE"))
         return 110217;

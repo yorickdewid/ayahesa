@@ -17,6 +17,7 @@
 /* Application core operations */
 extern void 		application_create(app_t **);
 extern void 		application_config(app_t *, const char *);
+extern void			application_bootstrap(app_t *app);
 extern void 		application_release(app_t *);
 extern void 		application_prelude(struct connection *);
 extern void 		application_postproc(struct connection *c);
@@ -54,6 +55,7 @@ aya_init(int state)
 			kore_log(LOG_NOTICE, "load ayahesa");
 			application_create(&root_app);
 			application_config(root_app, CONFIG);
+			application_bootstrap(root_app);
 			http_server_version(SERVLET_VERSION);
 			break;
 		case KORE_MODULE_UNLOAD:
