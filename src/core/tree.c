@@ -270,7 +270,7 @@ tree_get_str(struct app_tree *tree, const char *key, char **value)
     }
 }
 
-// #ifdef DEBUG
+#ifdef DEBUG
 
 void
 tree_dump(struct app_tree *node)
@@ -318,4 +318,4 @@ tree_dump(struct app_tree *node)
     }
 }
 
-// #endif
+#endif
