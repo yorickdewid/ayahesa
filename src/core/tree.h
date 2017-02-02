@@ -69,7 +69,9 @@ void tree_put_str(struct app_tree *tree, const char *key, const char *value);
 void tree_put_ptr(struct app_tree *tree, const char *key, void *value);
 
 void tree_get_int(struct app_tree *tree, const char *key, int *value);
+void tree_get_float(struct app_tree *tree, const char *key, float *value);
 void tree_get_str(struct app_tree *tree, const char *key, char **value);
+void tree_get_ptr(struct app_tree *tree, const char *key, void **value);
 
 // #ifdef DEBUG
 void tree_dump(struct app_tree *node);

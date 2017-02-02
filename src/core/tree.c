@@ -251,6 +251,26 @@ tree_get_int(struct app_tree *tree, const char *key, int *value)
 }
 
 /*
+ * Get float in tree
+ */
+void
+tree_get_float(struct app_tree *tree, const char *key, float *value)
+{
+    unsigned int i;
+
+    assert(tree != NULL);
+
+    for (i=0; i<tree->child.alloc_cnt; ++i) {
+        if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
+            if (tree->child.ptr[i]->type != T_FLOAT)
+                return;
+
+            *value = tree->child.ptr[i]->value.f;
+        }
+    }
+}
+
+/*
  * Get string in tree
  */
 void
@@ -269,6 +289,27 @@ tree_get_str(struct app_tree *tree, const char *key, char **value)
         }
     }
 }
+
+/*
+ * Get pointer in tree
+ */
+void
+tree_get_ptr(struct app_tree *tree, const char *key, void **value)
+{
+    unsigned int i;
+
+    assert(tree != NULL);
+
+    for (i=0; i<tree->child.alloc_cnt; ++i) {
+        if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
+            if (tree->child.ptr[i]->type != T_POINTER)
+                return;
+
+            *value = tree->child.ptr[i]->value.ptr;
+        }
+    }
+}
+
 
 #ifdef DEBUG
 
