@@ -4,6 +4,7 @@
 High performance scalable web framework. Ayahesa is loosely based on the MVC model and supports modern web features. The framework is build on top of [Kore](https://github.com/jorisvink/kore) application framework. The project is written in C99 and runs on most UNIX like operating systems.
 
 Features:
+* Model/view/controller
 * IPv6 support
 * TLS support
 * JWT authentication
@@ -19,7 +20,13 @@ See `conf/framework.ini` and adjust for appropriate usage.
 
 ## Getting started
 
-See `src/route.c` for example URIs pointing towards controllers defined in `src/controllers/`
+`src/route.c` defines routes and points towards controllers defined in `src/controllers/`
+
+`src/middleware.c` serves as middleware between routes and controllers. This is the place to declare authentication validators.
+
+`src/trigger.c` can act on framework fired events such as authentication failure.
+
+`src/provider.c` initalize additional components.
 
 ## Building
 

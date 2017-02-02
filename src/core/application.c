@@ -353,7 +353,7 @@ int
 app_isdebug(void)
 {
     int debug = 0;
-    tree_get_int(root_app->child.ptr[TREE_CONFIG], "debug", &debug);
+    config_get_int(root_app, "debug", &debug);
 
     return debug;
 }
@@ -364,10 +364,10 @@ app_isdebug(void)
 char *
 app_name(void)
 {
-    char *name = NULL;
-    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.name", &name);
+    char *app_name = NULL;
+    config_get_str(root_app, "app.name", &app_name);
 
-    return name;
+    return app_name;
 }
 
 /*
@@ -376,10 +376,10 @@ app_name(void)
 char *
 app_environment(void)
 {
-    char *name = NULL;
-    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.env", &name);
+    char *app_env = NULL;
+    config_get_str(root_app, "app.env", &app_env);
 
-    return name;
+    return app_env;
 }
 
 /*
@@ -388,10 +388,10 @@ app_environment(void)
 int
 app_session_lifetime(void)
 {
-    int session_lifetime = 0;
-    tree_get_int(root_app->child.ptr[TREE_CONFIG], "app.session", &session_lifetime);
+    int app_session_lifetime = 0;
+    config_get_int(root_app, "app.session", &app_session_lifetime);
 
-    return session_lifetime;
+    return app_session_lifetime;
 }
 
 /*
@@ -401,7 +401,7 @@ char *
 app_key(void)
 {
     char *app_key = NULL;
-    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.key", &app_key);
+    config_get_str(root_app, "app.key", &app_key);
 
     return app_key;
 }
@@ -412,10 +412,10 @@ app_key(void)
 char *
 app_storage(void)
 {
-    char *app_storage = NULL;
-    tree_get_str(root_app->child.ptr[TREE_CONFIG], "storage", &app_storage);
+    char *storage = NULL;
+    config_get_str(root_app, "storage", &storage);
 
-    return app_storage;
+    return storage;
 }
 
 /*
@@ -425,17 +425,16 @@ const char *
 app_domainname(void)
 {
     static char domainname[128];
-    char *domain = NULL;
+    char *app_domain = NULL;
+    config_get_str(root_app, "app.domain", &app_domain);
 
-    tree_get_str(root_app->child.ptr[TREE_CONFIG], "app.domain", &domain);
-
-    if (domain == NULL)
+    if (app_domain == NULL)
         return NULL;
 
     strcpy(domainname, app_instance());
-    if (domain[0] != '.')
+    if (app_domain[0] != '.')
         strcat(domainname,  ".");
-    strcat(domainname, domain);
+    strcat(domainname, app_domain);
 
     return strtolower(domainname);
 }

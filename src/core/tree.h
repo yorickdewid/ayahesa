@@ -30,6 +30,23 @@
 #define config_put_ptr(a,k,v) \
     tree_put_ptr(a->child.ptr[TREE_CONFIG],k,v)
 
+
+#define config_get_int(a,k,v) \
+    tree_get_int(a->child.ptr[TREE_CONFIG],k,v)
+
+#define config_get_float(a,k,v) \
+    tree_get_float(a->child.ptr[TREE_CONFIG],k,v)
+
+#define config_get_str(a,k,v) \
+    tree_get_str(a->child.ptr[TREE_CONFIG],k,v)
+
+#define config_get_ptr(a,k,v) \
+    tree_get_ptr(a->child.ptr[TREE_CONFIG],k,v)
+
+
+#define config_remove(a,k) \
+    tree_remove(a->child.ptr[TREE_CONFIG], k);
+
 /*
  * Cache operations
  */
@@ -45,6 +62,20 @@
 
 #define cache_put_ptr(a,k,v) \
     tree_put_ptr(a->child.ptr[TREE_CACHE],k,v)
+
+
+#define cache_get_int(a,k,v) \
+    tree_get_int(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_get_float(a,k,v) \
+    tree_get_float(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_get_str(a,k,v) \
+    tree_get_str(a->child.ptr[TREE_CACHE],k,v)
+
+#define cache_get_ptr(a,k,v) \
+    tree_get_ptr(a->child.ptr[TREE_CACHE],k,v)
+
 
 #define cache_remove(a,k) \
     tree_remove(a->child.ptr[TREE_CACHE], k);
