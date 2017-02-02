@@ -8,18 +8,7 @@
  * permission of the author.
  */
 
-/*
- * This example demonstrates how to use synchronous PGSQL queries
- * with Kore. For an asynchronous example see pgsql/ under examples/.
- *
- * This example does the same as the asynchronous one, select all entries
- * from a table called "coders".
- */
-
-//TODO: change
-#include "../include/ayahesa.h"
-#include "../include/argon2.h"
-#include "../core/util.h"
+#include <ayahesa.h>
 
 #define T_COST  2
 #define M_COST  2^10
@@ -27,35 +16,12 @@
 
 int			model_principal_auth(const char *, char *);
 
-static char *
-password_hash(const char *secret)
-{
-    unsigned char salt[16];
-    char *encoded;
-    size_t encodedlen;
-
-    /* Generate salt */
-    random_string(salt, 16, 1);
-
-    /* Calculate length */
-    encodedlen = argon2_encodedlen(T_COST, M_COST, P_COST, 16, 32, Argon2_i);
-    encoded = (char *)kore_malloc(encodedlen);
-
-    /* Calculate hash */
-    if (argon2i_hash_encoded(T_COST, M_COST, P_COST, secret, strlen(secret),
-                            salt, 16,
-                            32, encoded, encodedlen) != ARGON2_OK) {
-        return NULL;
-    }
-
-    return encoded;
-}
-
 int
 model_principal_auth(const char *user, char *secret)
 {
 	struct kore_pgsql	pgsql;
-	char		    	*id, *password;
+	char		    	*id, *password_hash;
+    char                *password_hash_new;
     int                 object_id = 0;
     char                sqlbuffer[256];
 
@@ -89,8 +55,8 @@ model_principal_auth(const char *user, char *secret)
         goto done;
     
     /* Fetch password and validate */
-	password = kore_pgsql_getvalue(&pgsql, 0, 1);
-    if (argon2i_verify(password, secret, strlen(secret)) != ARGON2_OK)
+	password_hash = kore_pgsql_getvalue(&pgsql, 0, 1);
+    if (!crypt_password_verify(password_hash, secret))
         goto done;
 
     /* Fetch object id */
@@ -98,7 +64,7 @@ model_principal_auth(const char *user, char *secret)
     object_id = atoi(id);
 
     /* Generate new password hash */
-    char *password_hash_new = password_hash(secret);
+    password_hash_new = crypt_password_hash(secret);
 
     /* Update password hash */
     snprintf(sqlbuffer, 256, updatesql, password_hash_new, object_id);

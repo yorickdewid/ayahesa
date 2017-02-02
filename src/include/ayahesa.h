@@ -148,6 +148,12 @@ int jrpc_write_string(struct jsonrpc_request *, void *);
  * JWT operations
  */
 char *jwt_token_new(struct jwt *jwt);
-int jwt_verify(char *, struct jwt *);
+int   jwt_verify(char *, struct jwt *);
+
+/*
+ * Crypt operations
+ */
+char *crypt_password_hash(const char *);
+int   crypt_password_verify(const char *, char *);
 
 #endif // _AYAHESA_H_

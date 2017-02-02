@@ -23,6 +23,10 @@ fetch_file(char *file, size_t *file_size)
     fseek(fp, 0, SEEK_SET);
 
     //TODO: mmap large files
+    if (*file_size > 1024 * 1024) {
+        //
+    }
+
     char *string = kore_malloc(*file_size + 1);
     fread(string, *file_size, 1, fp);
     fclose(fp);
