@@ -28,6 +28,7 @@ model_principal_auth(const char *user, const char *secret)
     int                 object_id = 0;
     char                sqlbuffer[256];
 
+    //TODO: prepared statement
     const char sql[] =
         "SELECT id "
         "FROM users "
