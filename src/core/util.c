@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <time.h>
+#include <fcntl.h>
 
 static int basic_auth_count = 0;
 
@@ -39,6 +40,23 @@ generate_instance_id(void)
     str[9] = '\0';
 
     return str;
+}
+
+void
+random_string(unsigned char buffer[], size_t size, int nonblock)
+{
+    int devfp = open(nonblock ? "/dev/urandom" : "/dev/random", O_RDONLY);
+    size_t datalen = 0;
+
+    while (datalen < size) {
+        ssize_t result = read(devfp, buffer + datalen, size - datalen);
+        if (result < 0)
+            break;
+
+        datalen += result;
+    }
+
+    close(devfp);
 }
 
 const char *

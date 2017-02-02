@@ -12,5 +12,6 @@
 #define _AYAHESA_UTIL_H_
 
 char *generate_instance_id(void);
+void random_string(unsigned char buffer[], size_t, int);
 
 #endif // _AYAHESA_UTIL_H_
