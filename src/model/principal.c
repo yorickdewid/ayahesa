@@ -37,7 +37,7 @@ model_principal_auth(const char *user, const char *secret)
         "LIMIT 1";
 
     /* Initialize connection */
-	if (!kore_pgsql_query_init(&pgsql, NULL, "db", KORE_PGSQL_SYNC)) {
+	if (!kore_pgsql_query_init(&pgsql, NULL, "dbr", KORE_PGSQL_SYNC)) {
 		kore_pgsql_logerror(&pgsql);
         goto done;
 	}
