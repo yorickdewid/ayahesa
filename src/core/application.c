@@ -277,7 +277,6 @@ app_log(const char *message, ...)
     struct tm* tm_info;
     va_list arglist;
 
-	kore_log(LOG_NOTICE, message);
     if (log_fp) {
         time(&timer);
         tm_info = localtime(&timer);

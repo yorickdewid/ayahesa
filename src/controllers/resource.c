@@ -58,7 +58,7 @@ controller(resource)
     /* Fetch arguments */
     if (!http_argument_get_string(request, "id", &uuid) ||
         !http_argument_get_string(request, "ext", &ext)) {
-	    http_response(request, 404, NULL, 0);
+	    http_response(request, 412, NULL, 0);
         return_ok();
     }
 

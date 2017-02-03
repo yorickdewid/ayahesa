@@ -21,6 +21,7 @@ char *ayahesa_strdup(const char *src);
 
 char *strncpy0(char* dest, const char* src, size_t size);
 char *strtolower(char *str);
+int strisalpha(char *str);
 char *rstrip(char* s);
 char *lskip(char *s);
 

@@ -45,11 +45,27 @@ strncpy0(char* dest, const char* src, size_t size)
 char *
 strtolower(char *str)
 {
-    for(int i = 0; str[i]; i++){
+    int i;
+
+    for (i = 0; str[i]; i++) {
         str[i] = tolower(str[i]);
     }
 
     return str;
+}
+
+/* Check if string is of alphabetical contents */
+int
+strisalpha(char *str)
+{
+    int i;
+
+    for (i = 0; str[i]; i++) {
+        if (!isalpha(str[i]))
+            return 0;
+    }
+
+    return 1;
 }
 
 /* Strip whitespace chars off end of given string, in place. Return s. */

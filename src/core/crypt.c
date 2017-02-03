@@ -32,8 +32,7 @@ crypt_password_hash(const char *secret)
 
     /* Calculate hash */
     if (argon2i_hash_encoded(T_COST, M_COST, P_COST, secret, strlen(secret),
-                            salt, 16,
-                            32, encoded, encodedlen) != ARGON2_OK) {
+                            salt, 16, 32, encoded, encodedlen) != ARGON2_OK) {
         return NULL;
     }
 

@@ -14,7 +14,7 @@
 #define M_COST  2^10
 #define P_COST  1
 
-int			model_principal_auth(const char *, char *);
+int	model_principal_auth(const char *, char *);
 
 int
 model_principal_auth(const char *user, char *secret)
@@ -32,6 +32,7 @@ model_principal_auth(const char *user, char *secret)
         "WHERE email='%s' "
         "LIMIT 1";
 
+    //TODO: prepared statement
     const char updatesql[] =
         "UPDATE users "
         "SET password='%s' "
