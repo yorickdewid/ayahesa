@@ -404,6 +404,7 @@ int quid_create_rev7(cuuid_t *uid, uint8_t flag, uint8_t subc, char tag[3]) {
 
 /* Default constructor */
 int quid_create(cuuid_t *cuuid, uint8_t flag, uint8_t subc, char tag[3]) {
+    memset(cuuid, '\0', sizeof(cuuid_t));
     if (cuuid->version == QUID_REV4)
         return quid_create_rev4(cuuid, flag, subc);
 
