@@ -12,6 +12,10 @@
 #include "../include/argon2.h"
 #include "../core/util.h"
 
+#include <openssl/x509.h>
+#include <openssl/hmac.h>
+#include <openssl/aes.h>
+
 #define T_COST  2
 #define M_COST  2^10
 #define P_COST  1
@@ -46,4 +50,33 @@ crypt_password_verify(const char *encoded, char *secret)
         return 0;
 
     return 1;
+}
+
+void
+crypt_sign(const unsigned char *data, size_t datalen,
+    unsigned char *signature, size_t *signaturelen,
+    const unsigned char *key, size_t keylen)
+{
+    HMAC(EVP_sha256(),
+         key, keylen,
+         data, datalen,
+         signature, (unsigned int *)signaturelen);
+}
+
+void
+crypt_encrypt(const unsigned char *data, unsigned char *out, unsigned char *key)
+{
+    AES_KEY enc_key;
+
+    AES_set_encrypt_key(key, 256, &enc_key);
+    AES_encrypt(data, out, &enc_key);      
+}
+
+void
+crypt_decrypt(const unsigned char *data, unsigned char *out, unsigned char *key)
+{
+    AES_KEY dec_key;
+
+    AES_set_decrypt_key(key, 256, &dec_key);
+    AES_decrypt(data, out, &dec_key);
 }

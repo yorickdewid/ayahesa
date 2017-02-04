@@ -11,8 +11,6 @@
 #include "../include/ayahesa.h"
 #include "../include/quid.h"
 
-#include <openssl/x509.h>
-#include <openssl/hmac.h>
 #include <time.h>
 
 #include "base64url.h"
@@ -72,13 +70,12 @@ generate_payload(struct jwt *jwt, size_t *payload_encoded_length)
 static unsigned char *
 sign_payload(char *key, size_t key_length, const char *data, size_t *signature_encoded_length)
 {
-    unsigned int signature_len;
-    unsigned char signature[EVP_MAX_MD_SIZE];
+    size_t signature_len = 0;
+    unsigned char signature[36];
 
-    HMAC(EVP_sha256(),
-         (const unsigned char *)key, key_length,
-         (const unsigned char *)data, strlen(data),
-         signature, &signature_len);
+    crypt_sign((const unsigned char *)data, strlen(data),
+        signature, &signature_len,
+        (const unsigned char *)key, key_length);
 
     /* Signature encode */
     unsigned char *signature_encoded = (unsigned char *)kore_calloc(((4 * signature_len) / 3 ) + 2, sizeof(unsigned char));

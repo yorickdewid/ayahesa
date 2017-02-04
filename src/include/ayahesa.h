@@ -155,5 +155,9 @@ int   jwt_verify(char *, struct jwt *);
  */
 char *crypt_password_hash(const char *);
 int   crypt_password_verify(const char *, char *);
+void  crypt_encrypt(const unsigned char *, unsigned char *, unsigned char *);
+void  crypt_decrypt(const unsigned char *, unsigned char *, unsigned char *);
+void  crypt_sign(const unsigned char *, size_t, unsigned char *, size_t *,
+        const unsigned char *, size_t);
 
 #endif // _AYAHESA_H_
