@@ -18,20 +18,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef NEED_STRDUP
-
-char *
-ayahesa_strdup(const char *src) {
-    char *dest = (char *)malloc(strlen(src) + 1);
-    if (dest == NULL)
-        return NULL;
-
-    strcpy(dest, src);
-    return dest;
-}
-
-#endif // NEED_STRDUP
-
 /* Version of strncpy that ensures dest (size bytes) is null-terminated. */
 char *
 strncpy0(char* dest, const char* src, size_t size)

@@ -142,10 +142,11 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     /* Prefix section */
     size_t szc = strlen(section);
     if (szc) {
-        char *key = (char *)kore_malloc(szc + 1 + strlen(name) + 1);
-        strcpy(key, section);
-        strcat(key, ".");
-        strcat(key, name);
+        size_t keylen = szc + 1 + strlen(name) + 1;
+        char *key = (char *)kore_malloc(keylen);
+        kore_strlcpy(key, section, keylen);
+        kore_strlcat(key, ".", keylen);
+        kore_strlcat(key, name, keylen);
 
         config_put_str(app, key, value);
         kore_free(key);
@@ -430,10 +431,10 @@ app_domainname(void)
     if (app_domain == NULL)
         return NULL;
 
-    strcpy(domainname, app_instance());
+    kore_strlcpy(domainname, app_instance(), 128);
     if (app_domain[0] != '.')
         strcat(domainname,  ".");
-    strcat(domainname, app_domain);
+    kore_strlcat(domainname, app_domain, 128);
 
     return strtolower(domainname);
 }
