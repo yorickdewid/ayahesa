@@ -68,7 +68,6 @@ middleware(auth_jwt)
 
 		/* Verify token */
 		if (jwt_verify(token, &jwt)) {
-			printf("Authorized: %s\n", jwt.sub);
 
 			//TODO: Free internals
             struct request_data *auth = (struct request_data *)request->hdlr_extra;

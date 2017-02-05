@@ -11,7 +11,8 @@
 #ifndef _AYAHESA_UTIL_H_
 #define _AYAHESA_UTIL_H_
 
-char *generate_instance_id(void);
-void random_string(unsigned char buffer[], size_t, int);
+char        *generate_instance_id(void);
+void        random_string(unsigned char buffer[], size_t, int);
+const char  *file_extension(const char *filename);
 
 #endif // _AYAHESA_UTIL_H_

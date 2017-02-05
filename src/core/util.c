@@ -60,6 +60,15 @@ random_string(unsigned char buffer[], size_t size, int nonblock)
 }
 
 const char *
+file_extension(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if (!dot || dot == filename)
+        return NULL;
+
+    return dot + 1;
+}
+
+const char *
 http_get_cookie(struct http_request *request, const char *name)
 {
     char *cookiejar = NULL;

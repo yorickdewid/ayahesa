@@ -4,15 +4,16 @@
 High performance scalable web framework. Ayahesa is loosely based on the MVC model and supports modern web features. The framework is build on top of [Kore](https://github.com/jorisvink/kore) application framework. The project is written in C99 and runs on most UNIX like operating systems.
 
 Features:
-* Model/view/controller
-* IPv6 support
-* TLS support
+* MVC based
 * JWT authentication
 * JSON-RPC pipeline
-* PostgreSQL support
-* Realtime websocket support
-* Event source updates
-* Basic templating
+* PostgreSQL database connector
+* Realtime websockets
+* Templating
+* File management
+* Opque encryption
+* IPv6 support
+* TLS support
 
 ## Configuration
 

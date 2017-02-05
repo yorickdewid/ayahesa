@@ -9,8 +9,11 @@
  */
 
 #include <ayahesa.h>
+#include <quid.h>
 
 #include <fcntl.h>
+
+#include "../core/util.h"
 
 static char *
 fetch_file(char *filename, size_t *file_size)
@@ -121,6 +124,8 @@ put_resource(struct http_request *request, struct request_data *auth)
 {
 	struct http_file	    *file;
     char                    filename[256];
+    cuuid_t                 quid;
+    char                    uuid[QUID_FULLLEN + 1];
 
 	/* Parse the multipart data that was present */
 	http_populate_multipart_form(request);
@@ -131,8 +136,14 @@ put_resource(struct http_request *request, struct request_data *auth)
 		return_ok();
 	}
 
+    /* Generate file identifier */    
+    quid_create(&quid, IDF_STRICT, CLS_CMON, NULL);
+    quid_tostring(&quid, uuid);
+    uuid[QUID_FULLLEN - 1] = '\0';
+    memmove(uuid, uuid+1, QUID_FULLLEN);
+
     /* Resource location */
-    snprintf(filename, 256, "%s/app/%d-%s", app_storage(), auth->auth.object_id, file->filename);
+    snprintf(filename, 256, "%s/app/%d-%s.%s", app_storage(), auth->auth.object_id, uuid, file_extension(file->filename));
 
     /* Store the file */
     if (store_file(file, filename) < 0) {
@@ -141,7 +152,8 @@ put_resource(struct http_request *request, struct request_data *auth)
         return_ok();
     }
 
-	http_response(request, 204, NULL, 0);
+    http_response_header(request, "content-type", "text/plain");
+	http_response(request, 200, uuid, QUID_FULLLEN - 2);
     return_ok();
 }
 
@@ -158,6 +170,7 @@ controller(resource)
     if (!auth->auth.principal || !auth->auth.object_id)
         return_error();
 
+    /* Determine action */
     switch (request->method) {
         case HTTP_METHOD_GET:
             return get_resource(request, auth);
