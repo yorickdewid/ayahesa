@@ -190,7 +190,7 @@ http_report(int code, char *title, size_t *length)
 		"</html>";
 
 	snprintf(strcode, 4, "%d", code);
-	strtime = kore_time_to_date(time(NULL)),
+	strtime = kore_time_to_date(time(NULL));
 
 	buffer = kore_buf_alloc(strlen(default_report));
 	kore_buf_append(buffer, default_report, strlen(default_report));
