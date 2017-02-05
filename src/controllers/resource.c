@@ -111,7 +111,10 @@ get_resource(struct http_request *request, struct request_data *auth)
         return_ok();
     }
 
-    http_response_header(request, "content-type", "image/jepg");
+    /* Fire success download event */
+    fire(EVENT_DOWNLOAD_SUCCESS, uuid);
+
+    http_response_header(request, "content-type", "image/jepg");//TODO: lookup mime
 	http_response(request, 200, string, file_size);
 
     kore_free(string);
@@ -151,6 +154,9 @@ put_resource(struct http_request *request, struct request_data *auth)
         http_response(request, 500, NULL, 0);
         return_ok();
     }
+
+    /* Fire success upload event */
+    fire(EVENT_UPLOAD_SUCCESS, uuid);
 
     http_response_header(request, "content-type", "text/plain");
 	http_response(request, 200, uuid, QUID_FULLLEN - 2);
