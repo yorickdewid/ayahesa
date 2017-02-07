@@ -16,7 +16,10 @@ struct mimetype {
     char mime[64];
 };
 
-const struct mimetype mimelist[] = {
+const char *mime_type(const char *);
+const char *mime_document(const char *);
+
+static const struct mimetype mimelist[] = {
     /* audio */
     {"aac", "AAC audio file", "audio/aac"},
     {"mid", "Musical Instrument Digital Interface (MIDI)", "audio/midi"},
@@ -90,5 +93,31 @@ const struct mimetype mimelist[] = {
     {"csv", "Comma-separated values (CSV)", "text/csv"},
     {"htm", "HyperText Markup Language (HTML)", "text/html"},
     {"html", "HyperText Markup Language (HTML)", "text/html"},
-    
 };
+
+const char *
+mime_type(const char *ext)
+{
+    unsigned int i;
+
+    for (i=0; i < sizeof(mimelist)/sizeof(mimelist[0]); ++i) {
+        if (!strcmp(ext, mimelist[i].ext))
+            return mimelist[i].mime;
+    }
+
+    /* Default MIME */
+    return "application/octet-stream";
+}
+
+const char *
+mime_document(const char *ext)
+{
+    unsigned int i;
+
+    for (i=0; i < sizeof(mimelist)/sizeof(mimelist[0]); ++i) {
+        if (!strcmp(ext, mimelist[i].ext))
+            return mimelist[i].document;
+    }
+
+    return NULL;
+}

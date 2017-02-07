@@ -15,6 +15,8 @@
 
 #include "../core/util.h"
 
+const char *mime_type(const char *ext);
+
 static char *
 fetch_file(char *filename, size_t *file_size)
 {
@@ -114,7 +116,7 @@ get_resource(struct http_request *request, struct request_data *auth)
     /* Fire success download event */
     fire(EVENT_DOWNLOAD_SUCCESS, uuid);
 
-    http_response_header(request, "content-type", "image/jepg");//TODO: lookup mime
+    http_response_header(request, "content-type", mime_type(ext));
 	http_response(request, 200, string, file_size);
 
     kore_free(string);
