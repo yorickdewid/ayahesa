@@ -144,9 +144,9 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     if (szc) {
         size_t keylen = szc + 1 + strlen(name) + 1;
         char *key = (char *)kore_malloc(keylen);
-        kore_strlcpy(key, section, keylen);
-        kore_strlcat(key, ".", keylen);
-        kore_strlcat(key, name, keylen);
+        aya_strlcpy(key, section, keylen);
+        aya_strlcat(key, ".", keylen);
+        aya_strlcat(key, name, keylen);
 
         config_put_str(app, key, value);
         kore_free(key);
@@ -434,7 +434,7 @@ app_domainname(void)
     kore_strlcpy(domainname, app_instance(), 128);
     if (app_domain[0] != '.')
         strcat(domainname,  ".");
-    kore_strlcat(domainname, app_domain, 128);
+    aya_strlcat(domainname, app_domain, 128);
 
     return strtolower(domainname);
 }

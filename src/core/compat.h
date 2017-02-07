@@ -19,7 +19,9 @@ char *ayahesa_strdup(const char *src);
 
 #endif // NEED_STRDUP
 
-char *strncpy0(char* dest, const char* src, size_t size);
+char *aya_strncpy0(char *, const char *, size_t);
+size_t aya_strlcpy(char *, const char *, const size_t);
+size_t aya_strlcat(char *, const char *, const size_t);
 char *strtolower(char *str);
 int strisalpha(char *str);
 char *rstrip(char* s);

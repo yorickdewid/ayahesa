@@ -86,7 +86,7 @@ ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
             end = find_chars_or_comment(start + 1, "]");
             if (*end == ']') {
                 *end = '\0';
-                strncpy0(section, start + 1, sizeof(section));
+                aya_strncpy0(section, start + 1, sizeof(section));
                 *prev_name = '\0';
             }
             else if (!error) {
@@ -107,7 +107,7 @@ ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
                 rstrip(value);
 
                 /* Valid name[=:]value pair found, call handler */
-                strncpy0(prev_name, name, sizeof(prev_name));
+                aya_strncpy0(prev_name, name, sizeof(prev_name));
                 if (!HANDLER(user, section, name, value) && !error)
                     error = lineno;
             } else if (!error) {

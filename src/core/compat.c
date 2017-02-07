@@ -20,11 +20,70 @@
 
 /* Version of strncpy that ensures dest (size bytes) is null-terminated. */
 char *
-strncpy0(char* dest, const char* src, size_t size)
+aya_strncpy0(char *dst, const char *src, size_t len)
 {
-    strncpy(dest, src, size);
-    dest[size - 1] = '\0';
-    return dest;
+    strncpy(dst, src, len);
+    dst[len - 1] = '\0';
+    return dst;
+}
+
+size_t
+aya_strlcpy(char *dst, const char *src, const size_t len)
+{
+	char		*d = dst;
+	const char	*s = src;
+	const char	*end = dst + len - 1;
+
+	if (len == 0)
+		return 0;
+
+	while ((*d = *s) != '\0') {
+		if (d == end) {
+			*d = '\0';
+			break;
+		}
+
+		d++;
+		s++;
+	}
+
+	while (*s != '\0')
+		s++;
+
+	return s - src;
+}
+
+size_t
+aya_strlcat(char *dst, const char *src, const size_t len)
+{
+	char		*d = dst;
+	const char	*s = src;
+	size_t		n = len;
+	size_t		dlen;
+
+	if (len == 0)
+		return 0;
+
+	while (n-- != 0 && *d != '\0')
+		d++;
+
+	dlen = d - dst;
+	n = len - dlen;
+
+	if (n == 0)
+		return dlen + strlen(s);
+
+	while (*s != '\0') {
+		if (n != 1) {
+			*d++ = *s;
+			n--;
+		}
+
+		s++;
+	}
+	*d = '\0';
+
+	return dlen + (s - src);
 }
 
 /* Convert string to lower */
