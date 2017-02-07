@@ -12,8 +12,6 @@
 
 #include <time.h>
 
-#define SERVLET_VERSION		"Kytarah/0.4"
-
 /* Application core operations */
 extern void 		application_create(app_t **);
 extern void 		application_config(app_t *, const char *);
@@ -46,7 +44,7 @@ aya_init(int state)
 {
 	switch (state) {
 		case KORE_MODULE_LOAD:
-			kore_log(LOG_NOTICE, "server core " SERVLET_VERSION);
+			kore_log(LOG_NOTICE, "server core " VERSION);
 			kore_log(LOG_NOTICE, "running Kore/%d.%d.%d-%s",
 				KORE_VERSION_MAJOR,
 				KORE_VERSION_MINOR,
@@ -56,7 +54,7 @@ aya_init(int state)
 			application_create(&root_app);
 			application_config(root_app, CONFIG);
 			application_bootstrap(root_app);
-			http_server_version(SERVLET_VERSION);
+			http_server_version(VERSION);
 			break;
 		case KORE_MODULE_UNLOAD:
 			kore_log(LOG_NOTICE, "unload ayahesa");
@@ -146,7 +144,6 @@ aya_status(struct http_request *request)
 		"<tr><td>Active connections</td><td>%d</td></tr>"
 		"<tr><td>Servertime</td><td>%s</td></tr>"
 		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
-		"<tr><td>Servlet version</td><td>" SERVLET_VERSION "</td></tr>"
 		"<tr><td>Accelerator version</td><td>Kore/%d.%d.%d-%s</td></tr>"
 		"</table>"
 		"</body>"
