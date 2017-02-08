@@ -13,12 +13,6 @@
 
 #include <string.h>
 
-#ifdef NEED_STRDUP
-
-char *ayahesa_strdup(const char *src);
-
-#endif // NEED_STRDUP
-
 char *aya_strncpy0(char *, const char *, size_t);
 size_t aya_strlcpy(char *, const char *, const size_t);
 size_t aya_strlcat(char *, const char *, const size_t);
