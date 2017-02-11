@@ -40,11 +40,14 @@ size_t
 afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 {
     AES_KEY key;
-    int bytes_read, counter = 0;
-    unsigned char *indata = kore_malloc(size * nmemb);
+    unsigned char iv[32];
+    int counter = 0;
 
     unsigned char *ckey = (unsigned char *)kore_strdup((const char *)afp->key);
-    unsigned char *civ = (unsigned char *)kore_strdup((const char *)afp->iv);
+    memset(iv, '\0', 32);
+    strcpy((char *)iv, (const char *)afp->iv);
+
+    printf("%s\n", iv);
 
     /* Set the encryption key */
     AES_set_encrypt_key(ckey, 128, &key);
@@ -52,19 +55,18 @@ afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
     /* Set pointer to offset 0 */
     rewind(afp->fp);
 
-    while (size) {
-        bytes_read = fread(indata, 1, nmemb, afp->fp);
+    unsigned int i;
+    for (i=0; i<nmemb; ++i) {
+        unsigned char *indata = kore_malloc(size);
+        fread(indata, size, 1, afp->fp);
 
-        printf(">> %d\n", bytes_read);
-
-        AES_cfb128_encrypt(indata, ptr, bytes_read, &key, civ, &counter, AES_DECRYPT);
-        break;
+        unsigned char *part = ((unsigned char *)ptr) + (i * size);
+        AES_cfb128_encrypt(indata, part, size, &key, iv, &counter, AES_DECRYPT);
+        kore_free(indata);
     }
 
-    // kore_free(ckey);
-    // kore_free(civ);
-
-    kore_free(indata);
+    kore_free(ckey);
+    
     return 0;
 }
 
@@ -72,11 +74,12 @@ size_t
 afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 {
     AES_KEY key;
+    unsigned char iv[32];
     int counter = 0;
-    unsigned char *outdata = kore_malloc(size * nmemb);
 
     unsigned char *ckey = (unsigned char *)kore_strdup((const char *)afp->key);
-    unsigned char *civ = (unsigned char *)kore_strdup((const char *)afp->iv);
+    memset(iv, '\0', 32);
+    strcpy((char *)iv, (const char *)afp->iv);
 
     /* Set the encryption key */
     AES_set_encrypt_key(ckey, 128, &key);
@@ -84,18 +87,19 @@ afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
     /* Set pointer to offset 0 */
     rewind(afp->fp);
 
-    while (size) {
-        AES_cfb128_encrypt(ptr, outdata, nmemb, &key, civ, &counter, AES_ENCRYPT);
+    unsigned int i;
+    for (i=0; i<nmemb; ++i) {
+        unsigned char *outdata = kore_malloc(size);
 
-        fwrite(outdata, 1, nmemb, afp->fp);
-        if (nmemb < AES_BLOCK_SIZE)
-            break;
+        const unsigned char *part = ((const unsigned char *)ptr) + (i * size);
+        AES_cfb128_encrypt(part, outdata, size, &key, iv, &counter, AES_ENCRYPT);
+
+        fwrite(outdata, size, 1, afp->fp);
+        kore_free(outdata);
     }
 
-    // kore_free(p_ckey);
-    // kore_free(civ);
+    kore_free(ckey);
 
-    kore_free(outdata);
     return 0;
 }
 
