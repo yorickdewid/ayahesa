@@ -16,11 +16,13 @@
 typedef struct {
     FILE *fp;
     const unsigned char *key;
-    const unsigned char *iv;
+    unsigned char *iv;
+    int keysz;
+    int has_header;
 } AYAFILE;
 
 AYAFILE *afopen(const char *path, const char *mode);
-void afset(unsigned char key[], unsigned char iv[], AYAFILE *afp);
+void afset(unsigned char key[], AYAFILE *afp);
 size_t afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp);
 size_t afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp);
 
