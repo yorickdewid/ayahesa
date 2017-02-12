@@ -11,7 +11,7 @@
 #include "../include/ayahesa.h"
 
 struct mimetype {
-    char ext[8];
+    char ext[16];
     char document[64];
     char mime[64];
 };
@@ -93,6 +93,7 @@ static const struct mimetype mimelist[] = {
     {"csv", "Comma-separated values (CSV)", "text/csv"},
     {"htm", "HyperText Markup Language (HTML)", "text/html"},
     {"html", "HyperText Markup Language (HTML)", "text/html"},
+    {"appcache", "Application cache", "text/cache-manifest"},
 };
 
 const char *
