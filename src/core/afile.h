@@ -23,9 +23,16 @@ AYAFILE *afopen(const char *path, const char *mode);
 void afset(unsigned char key[], unsigned char iv[], AYAFILE *afp);
 size_t afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp);
 size_t afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp);
-int afseek(AYAFILE *afp, long offset, int whence);
-long aftell(AYAFILE *afp);
-void arewind(AYAFILE *afp);
+
 int afclose(AYAFILE *fp);
+
+#define afseek(f,o,w) \
+    fseek(f->fp, o, w)
+
+#define aftell(f) \
+    ftell(f->fp)
+
+#define arewind(f) \
+    rewind(f->fp)
 
 #endif // _AYAHESA_AFILE_H_

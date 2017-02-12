@@ -41,13 +41,14 @@ afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 {
     AES_KEY key;
     unsigned char iv[32];
-    int counter = 0;
+    int counter = 0, readsz = 0;
+
+    if (!afp->key || !afp->iv)
+        return 0;
 
     unsigned char *ckey = (unsigned char *)kore_strdup((const char *)afp->key);
     memset(iv, '\0', 32);
     strcpy((char *)iv, (const char *)afp->iv);
-
-    printf("%s\n", iv);
 
     /* Set the encryption key */
     AES_set_encrypt_key(ckey, 128, &key);
@@ -58,7 +59,7 @@ afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
     unsigned int i;
     for (i=0; i<nmemb; ++i) {
         unsigned char *indata = kore_malloc(size);
-        fread(indata, size, 1, afp->fp);
+        readsz += fread(indata, size, 1, afp->fp);
 
         unsigned char *part = ((unsigned char *)ptr) + (i * size);
         AES_cfb128_encrypt(indata, part, size, &key, iv, &counter, AES_DECRYPT);
@@ -67,7 +68,7 @@ afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 
     kore_free(ckey);
     
-    return 0;
+    return readsz;
 }
 
 size_t
@@ -75,7 +76,10 @@ afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 {
     AES_KEY key;
     unsigned char iv[32];
-    int counter = 0;
+    int counter = 0, writesz = 0;
+
+    if (!afp->key || !afp->iv)
+        return 0;
 
     unsigned char *ckey = (unsigned char *)kore_strdup((const char *)afp->key);
     memset(iv, '\0', 32);
@@ -94,31 +98,13 @@ afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
         const unsigned char *part = ((const unsigned char *)ptr) + (i * size);
         AES_cfb128_encrypt(part, outdata, size, &key, iv, &counter, AES_ENCRYPT);
 
-        fwrite(outdata, size, 1, afp->fp);
+        writesz += fwrite(outdata, size, 1, afp->fp);
         kore_free(outdata);
     }
 
     kore_free(ckey);
 
-    return 0;
-}
-
-int
-afseek(AYAFILE *afp, long offset, int whence)
-{
-    return fseek(afp->fp, offset, whence);
-}
-
-long
-aftell(AYAFILE *afp)
-{
-    return ftell(afp->fp);
-}
-
-void
-arewind(AYAFILE *afp)
-{
-    rewind(afp->fp);
+    return writesz;
 }
 
 int

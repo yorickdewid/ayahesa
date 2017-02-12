@@ -45,6 +45,8 @@
 typedef enum {
     EVENT_AUTH_FAILED = 10,
     EVENT_AUTH_SUCCESS,
+    EVENT_DOWNLOAD_SUCCESS,
+    EVENT_UPLOAD_SUCCESS,
 } event_type_t;
 
 /*
@@ -159,5 +161,7 @@ void  crypt_encrypt(const unsigned char *, unsigned char *, unsigned char *);
 void  crypt_decrypt(const unsigned char *, unsigned char *, unsigned char *);
 void  crypt_sign(const unsigned char *, size_t, unsigned char *, size_t *,
         const unsigned char *, size_t);
+
+int   view(struct http_request *, const char *);
 
 #endif // _AYAHESA_H_
