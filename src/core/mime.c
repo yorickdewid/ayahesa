@@ -45,6 +45,7 @@ static const struct mimetype mimelist[] = {
     {"tif", "Tagged Image File Format (TIFF)", "image/tiff"},
     {"tiff", "Tagged Image File Format (TIFF)", "image/tiff"},
     {"webp", "WEBP image", "image/webp"},
+    {"png", "PNG image", "image/png"},
 
     /* font */
     {"ttf", "TrueType Font", "font/ttf"},
