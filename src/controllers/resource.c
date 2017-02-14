@@ -14,93 +14,92 @@
 #include <fcntl.h>
 
 #include "../core/util.h"
+#include "../core/afile.h"
 
 const char *mime_type(const char *ext);
 
 static char *
 fetch_file(char *filename, size_t *file_size)
 {
-    FILE *fp = fopen(filename, "r");
+    AYAFILE *fp = afopen(filename, "rb");
     if (!fp)
         return NULL;
 
+    /* Set key */
+    afkey((unsigned char *)"password", fp);
+
     /* Determine file size */
-    fseek(fp, 0, SEEK_END);
-    *file_size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    *file_size = afsize(fp);
 
-    //TODO: mmap large files
-    if (*file_size > 1024 * 1024) {
-        //
-    }
+    unsigned char *content = kore_calloc(1, *file_size);
+    afread(content, *file_size, 1, fp);
 
-    char *content = kore_malloc(*file_size + 1);
-    fread(content, *file_size, 1, fp);
-    fclose(fp);
-
-    content[*file_size] = '\0';
-    return content;
+    afclose(fp);
+    return (char *)content;
 }
 
 static int
 store_file(struct http_file	*file, char *filename)
 {
-    unsigned char	   	buf[BUFSIZ];
-    ssize_t		        ret, written;
+    unsigned char       buf[BUFSIZ];
+    ssize_t             ret, written;
     int                 error = 0;
 
     /* Open file */
-    FILE *fp = fopen(filename, "wb");
+    AYAFILE *fp = afopen(filename, "wb");
     if (!fp)
         return -1;
+
+    /* Set key */
+    afkey((unsigned char *)"password", fp);
 
     /* Keep writing to file */
     for (;;) {
         ret = http_file_read(file, buf, sizeof(buf));
-		if (ret == -1) {
-			kore_log(LOG_ERR, "failed to read from file");
+        if (ret == -1) {
+            kore_log(LOG_ERR, "failed to read from file");
             error = 1;
             break;
-		}
+        }
 
-		if (ret == 0)
-			break;
-
-        written = fwrite(buf, ret, 1, fp);
-		if (written < 0) {
-			kore_log(LOG_ERR,"write(%s): %s", file->filename, errno_s);
-			error = 1;
+        if (ret == 0)
             break;
-		}
+
+        written = afwrite(buf, ret, 1, fp);
+        if (written < 0) {
+            kore_log(LOG_ERR, "write(%s): %s", file->filename, errno_s);
+            error = 1;
+            break;
+        }
     }
 
     /* Close file */
-    if (fclose(fp) < 0)
+    if (afclose(fp) < 0)
         kore_log(LOG_WARNING, "fclose(%s): %s", file->filename, errno_s);
 
     /* Unlink on error */
-	if (error) {
-		if (unlink(file->filename) < 0) {
-			kore_log(LOG_WARNING, "unlink(%s): %s", file->filename, errno_s);
+    if (error) {
+        if (unlink(file->filename) < 0) {
+            kore_log(LOG_WARNING, "unlink(%s): %s", file->filename, errno_s);
             return -1;
         }
-	}
-    
+    }
+
     return 0;
 }
 
 static int
 get_resource(struct http_request *request, struct request_data *auth)
 {
-    char		*uuid, *ext;
+    char        *uuid, *ext;
     char        filename[256];
     size_t      file_size;
 
     /* Fetch arguments */
-	http_populate_get(request);
+    http_populate_get(request);
     if (!http_argument_get_string(request, "id", &uuid) ||
         !http_argument_get_string(request, "ext", &ext)) {
-	    http_response(request, 412, NULL, 0);
+        http_response(request, 412, NULL, 0);
         return_ok();
     }
 
@@ -117,7 +116,7 @@ get_resource(struct http_request *request, struct request_data *auth)
     fire(EVENT_DOWNLOAD_SUCCESS, uuid);
 
     http_response_header(request, "content-type", mime_type(ext));
-	http_response(request, 200, string, file_size);
+    http_response(request, 200, string, file_size);
 
     kore_free(string);
 
@@ -127,19 +126,19 @@ get_resource(struct http_request *request, struct request_data *auth)
 static int
 put_resource(struct http_request *request, struct request_data *auth)
 {
-	struct http_file	    *file;
+    struct http_file	    *file;
     char                    filename[256];
     cuuid_t                 quid;
     char                    uuid[QUID_FULLLEN + 1];
 
-	/* Parse the multipart data that was present */
-	http_populate_multipart_form(request);
+    /* Parse the multipart data that was present */
+    http_populate_multipart_form(request);
 
-	/* Find our file */
-	if ((file = http_file_lookup(request, "file")) == NULL) {
-		http_response(request, 400, NULL, 0);
-		return_ok();
-	}
+    /* Find our file */
+    if ((file = http_file_lookup(request, "file")) == NULL) {
+        http_response(request, 400, NULL, 0);
+        return_ok();
+    }
 
     /* Generate file identifier */    
     quid_create(&quid, IDF_STRICT, CLS_CMON, NULL);
@@ -161,7 +160,7 @@ put_resource(struct http_request *request, struct request_data *auth)
     fire(EVENT_UPLOAD_SUCCESS, uuid);
 
     http_response_header(request, "content-type", "text/plain");
-	http_response(request, 200, uuid, QUID_FULLLEN - 2);
+    http_response(request, 200, uuid, QUID_FULLLEN - 2);
     return_ok();
 }
 
@@ -185,7 +184,7 @@ controller(resource)
         case HTTP_METHOD_POST:
             return put_resource(request, auth);
         default:
-		    break;
+            break;
     }
 
     http_response_header(request, "allow", "GET,POST");

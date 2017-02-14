@@ -12,6 +12,7 @@
 #include "util.h"
 #include "afile.h"
 
+#include <openssl/evp.h>
 #include <openssl/aes.h>
 
 #define FILE_MAGIC 0xfe8a
@@ -51,7 +52,7 @@ write_header(AYAFILE *afp)
     random_string(hdr.iv, 16, 1);
 
     hdr.magic = FILE_MAGIC;
-    hdr.keysz = 192;
+    hdr.keysz = 128;
 
     /* Set pointer to offset 0 */
     rewind(afp->fp);
@@ -81,7 +82,7 @@ afopen(const char *path, const char *mode)
 }
 
 void
-afset(unsigned char key[], AYAFILE *afp)
+afkey(unsigned char key[], AYAFILE *afp)
 {
     afp->key = key;
 }
@@ -89,73 +90,41 @@ afset(unsigned char key[], AYAFILE *afp)
 size_t
 afread(void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 {
-    AES_KEY key;
-    unsigned char iv[32];
-    int counter = 0, readsz = 0;
-
-    if (!afp->has_header)
+    if (!afp->has_header) {
         if (read_header(afp) < 0)
             return 0;
-
-    if (!afp->key)
-        return 0;
-
-    unsigned char *ckey = (unsigned char *)kore_strdup((const char *)afp->key);
-    memset(iv, '\0', 32);
-    strcpy((char *)iv, (const char *)afp->iv);
-
-    /* Set the encryption key */
-    AES_set_encrypt_key(ckey, afp->keysz, &key);
-
-    unsigned int i;
-    for (i=0; i<nmemb; ++i) {
-        unsigned char *indata = kore_malloc(size);
-        readsz += fread(indata, size, 1, afp->fp);
-
-        unsigned char *part = ((unsigned char *)ptr) + (i * size);
-        AES_cfb128_encrypt(indata, part, size, &key, iv, &counter, AES_DECRYPT);
-        kore_free(indata);
     }
 
-    kore_free(ckey);
-    
-    return readsz;
+    // if (!afp->key)
+        // return 0;
+
+    return fread(ptr, size, nmemb, afp->fp);
 }
 
 size_t
 afwrite(const void *ptr, size_t size, size_t nmemb, AYAFILE *afp)
 {
-    AES_KEY key;
-    unsigned char iv[32];
-    int counter = 0, writesz = 0;
-
-    if (!afp->key)
-        return 0;
+    // if (!afp->key)
+        // return 0;
 
     if (!afp->has_header)
         write_header(afp);
 
-    unsigned char *ckey = (unsigned char *)kore_strdup((const char *)afp->key);
-    memset(iv, '\0', 32);
-    strcpy((char *)iv, (const char *)afp->iv);
+    return fwrite(ptr, size * nmemb, nmemb, afp->fp);
+}
 
-    /* Set the encryption key */
-    AES_set_encrypt_key(ckey, afp->keysz, &key);
+size_t
+afsize(AYAFILE *afp)
+{
+    size_t filesz;
+    fseek(afp->fp, 0, SEEK_END);
+    filesz = ftell(afp->fp);
+    fseek(afp->fp, 0, SEEK_SET);
 
-    unsigned int i;
-    for (i=0; i<nmemb; ++i) {
-        unsigned char *outdata = kore_malloc(size);
+    if (filesz < 1)
+        return 0;
 
-        const unsigned char *part = ((const unsigned char *)ptr) + (i * size);
-        AES_cfb128_encrypt(part, outdata, size, &key, iv, &counter, AES_ENCRYPT);
-
-        writesz += fwrite(outdata, size, 1, afp->fp);
-        kore_free(outdata);
-    }
-
-    kore_free(ckey);
-
-    return writesz;
+    return filesz - sizeof(struct cryptfile);
 }
 
 int
@@ -166,4 +135,34 @@ afclose(AYAFILE *afp)
     ret = fclose(afp->fp);
     kore_free(afp);
     return ret;
+}
+
+void file_crypt(int should_encrypt, FILE *ifp, FILE *ofp, unsigned char *ckey, unsigned char *ivec);
+
+void file_crypt(int should_encrypt, FILE *ifp, FILE *ofp, unsigned char *ckey, unsigned char *ivec) {
+    const unsigned int bufsize = 4096;
+    unsigned char *read_buf = malloc(bufsize);
+
+    int out_len;
+    EVP_CIPHER_CTX ctx;
+
+    EVP_CipherInit(&ctx, EVP_aes_256_cbc(), ckey, ivec, should_encrypt);
+    unsigned int blocksize = EVP_CIPHER_CTX_block_size(&ctx);
+    unsigned char *cipher_buf = malloc(bufsize + blocksize);
+
+    while (1) {
+        unsigned int numRead = fread(read_buf, sizeof(unsigned char), bufsize, ifp);
+        EVP_CipherUpdate(&ctx, cipher_buf, &out_len, read_buf, numRead);
+        fwrite(cipher_buf, sizeof(unsigned char), out_len, ofp);
+        if (numRead < bufsize)
+            break;
+    }
+
+    // Now cipher the final block and write it out.
+    EVP_CipherFinal(&ctx, cipher_buf, &out_len);
+    fwrite(cipher_buf, sizeof(unsigned char), out_len, ofp);
+
+    // Free memory
+    free(cipher_buf);
+    free(read_buf);
 }
