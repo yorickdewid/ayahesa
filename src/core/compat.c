@@ -57,9 +57,9 @@ size_t
 aya_strlcat(char *dst, const char *src, const size_t len)
 {
     char		*d = dst;
-    const char	*s = src;
-    size_t		n = len;
-    size_t		dlen;
+    const char  *s = src;
+    size_t      n = len;
+    size_t      dlen;
 
     if (len == 0)
         return 0;
