@@ -30,60 +30,60 @@ aya_strncpy0(char *dst, const char *src, size_t len)
 size_t
 aya_strlcpy(char *dst, const char *src, const size_t len)
 {
-	char		*d = dst;
-	const char	*s = src;
-	const char	*end = dst + len - 1;
+    char        *d = dst;
+    const char  *s = src;
+    const char  *end = dst + len - 1;
 
-	if (len == 0)
-		return 0;
+    if (len == 0)
+        return 0;
 
-	while ((*d = *s) != '\0') {
-		if (d == end) {
-			*d = '\0';
-			break;
-		}
+    while ((*d = *s) != '\0') {
+        if (d == end) {
+            *d = '\0';
+            break;
+        }
 
-		d++;
-		s++;
-	}
+        d++;
+        s++;
+    }
 
-	while (*s != '\0')
-		s++;
+    while (*s != '\0')
+        s++;
 
-	return s - src;
+    return s - src;
 }
 
 size_t
 aya_strlcat(char *dst, const char *src, const size_t len)
 {
-	char		*d = dst;
-	const char	*s = src;
-	size_t		n = len;
-	size_t		dlen;
+    char		*d = dst;
+    const char	*s = src;
+    size_t		n = len;
+    size_t		dlen;
 
-	if (len == 0)
-		return 0;
+    if (len == 0)
+        return 0;
 
-	while (n-- != 0 && *d != '\0')
-		d++;
+    while (n-- != 0 && *d != '\0')
+        d++;
 
-	dlen = d - dst;
-	n = len - dlen;
+    dlen = d - dst;
+    n = len - dlen;
 
-	if (n == 0)
-		return dlen + strlen(s);
+    if (n == 0)
+        return dlen + strlen(s);
 
-	while (*s != '\0') {
-		if (n != 1) {
-			*d++ = *s;
-			n--;
-		}
+    while (*s != '\0') {
+        if (n != 1) {
+            *d++ = *s;
+            n--;
+        }
 
-		s++;
-	}
-	*d = '\0';
+        s++;
+    }
+    *d = '\0';
 
-	return dlen + (s - src);
+    return dlen + (s - src);
 }
 
 /* Convert string to lower */
