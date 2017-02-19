@@ -10,8 +10,6 @@
 
 #include "../include/ayahesa.h"
 
-#include "assets.h" //TODO: for now
-
 #include <dlfcn.h>
 
 #define TOk_INCLUDE     "@include("
@@ -21,39 +19,26 @@
 #define TOk_CLOSE       ')'
 
 static void
-replace_string(struct kore_buf *b, char *src, void *dst, size_t len)
+replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,void *dst, size_t len)
 {
-    char        *key, *end, *tmp, *p;
-    size_t      blen, off, off2, nlen, klen;
+    char        *pos_end, *tmp;
+    size_t      pre_len, post_len, new_len;
 
-    off = 0;
-    klen = strlen(src);
-    for (;;) {
-        blen = b->offset;
-        nlen = blen + len;
-        p = (char *)b->data;
+    new_len = b->offset + len;
+    pos_end = pos_start + pos_length;
+    pre_len = pos_start - (char *)b->data;
+    post_len = ((char *)(b->data + b->offset) - pos_end);
 
-        key = kore_mem_find(p + off, b->offset - off, src, klen);
-        if (key == NULL)
-            break;
+    tmp = kore_malloc(new_len);
+    memcpy(tmp, b->data, pre_len);
+    if (dst != NULL)
+        memcpy((tmp + pre_len), dst, len);
+    memcpy((tmp + pre_len + len), pos_end, post_len);
 
-        end = key + klen;
-        off = key - p;
-        off2 = ((char *)(b->data + b->offset) - end);
-
-        tmp = kore_malloc(nlen);
-        memcpy(tmp, p, off);
-        if (dst != NULL)
-            memcpy((tmp + off), dst, len);
-        memcpy((tmp + off + len), end, off2);
-
-        kore_free(b->data);
-        b->data = (u_int8_t *)tmp;
-        b->offset = off + len + off2;
-        b->length = nlen;
-
-        off = off + len;
-    }
+    kore_free(b->data);
+    b->data = (u_int8_t *)tmp;
+    b->offset = pre_len + len + post_len;
+    b->length = new_len;
 }
 
 static char **
@@ -68,7 +53,7 @@ split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
             cmdline[i++] = '\0';
 
             /* Arguments */
-            argv[(*argc)++] = next;
+            argv[(*argc)++] = next;//TODO: skip whitespace
             next = cmdline + i;
         }
     }
@@ -101,7 +86,7 @@ include_asset(const char *name)
     return asset;
 }
 
-static void
+static char *
 call_vfunc(int argc, char *argv[])
 {
     typedef char *(*decl_vfunc)(int argc, char *argv[]);
@@ -110,23 +95,24 @@ call_vfunc(int argc, char *argv[])
     void *hndl = dlopen(NULL, RTLD_LAZY);
     if (!hndl) {
         puts("dlopen");
-        return;
+        return NULL;
     }
 
     *(char **)(&vfunc) = dlsym(hndl, argv[0]);
     if (!vfunc) {
         puts("dlsym");
         dlclose(hndl);
-        return;
+        return NULL;
     }
 
-    vfunc(argc, argv);
+    char *response = vfunc(argc, argv);
 
     dlclose(hndl);
+    return response;
 }
 
 static char *
-parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz)
+parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz, char **posx_start, size_t *posx_length)
 {
     char *include = kore_mem_find(buffer->data, buffer->length, token, tokensz);
     if (!include)
@@ -145,6 +131,12 @@ parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz)
     printf("Argument sz %zu\n", *argumentsz);
     printf("Argument '%.*s'\n", (int)*argumentsz, pos_start);
 
+    *posx_start = include;
+    printf("Start char: %c\n", (*posx_start)[0]);
+    *posx_length = (pos_start + *argumentsz) - *posx_start;
+    printf("Length: %zu\n", *posx_length );
+    printf("End char: %c\n", (*posx_start + *posx_length)[0]);
+
     return pos_start;
 }
 
@@ -152,11 +144,14 @@ static void
 process_include(struct kore_buf *buffer)
 {
     char            *argument;
+    char            *pos_start;
     size_t          argumentsz;
+    size_t          pos_length;
 
-    //for (;;) {
+    /* Keep processing includes */
+    for (;;) {
         argumentsz = 0;
-        argument = parser(buffer, TOk_INCLUDE, sizeof(TOk_INCLUDE) - 1, &argumentsz);
+        argument = parser(buffer, TOk_INCLUDE, sizeof(TOk_INCLUDE) - 1, &argumentsz, &pos_start, &pos_length);
         if (!argument || !argumentsz)
             return;
 
@@ -165,8 +160,9 @@ process_include(struct kore_buf *buffer)
         if (!asset)
             return;
 
-        replace_string(buffer, "@include(body", asset, strlen(asset));//TODO: replace between offsets
-    //}
+        /* Replace substring */
+        replace_string(buffer, pos_start, pos_length, asset, strlen(asset));
+    }
 }
 
 char *foo_bar(int argc, char *argv[]);
@@ -174,18 +170,20 @@ char *
 foo_bar(int argc, char *argv[])
 {
     puts("JUPS");
-    return "kaas";
+    return "This is foo <b>bar</b>";
 }
 
 static void
 process_function(struct kore_buf *buffer)
 {
     char            *argument;
+    char            *pos_start;
     size_t          argumentsz;
+    size_t          pos_length;
 
     //for (;;) {
         argumentsz = 0;
-        argument = parser(buffer, TOk_FUNCTION, sizeof(TOk_FUNCTION) - 1, &argumentsz);
+        argument = parser(buffer, TOk_FUNCTION, sizeof(TOk_FUNCTION) - 1, &argumentsz, &pos_start, &pos_length);
         if (!argument || !argumentsz)
             return;
 
@@ -197,11 +195,11 @@ process_function(struct kore_buf *buffer)
         if (!argc)
             return;
 
-        call_vfunc(argc, argv);
+        char *str = call_vfunc(argc, argv);
 
         kore_free(argv);
 
-        // replace_string(buffer, "@function(get_server_name, 3, 5)", asset, strlen(asset));
+        replace_string(buffer, pos_start, pos_length, str, strlen(str));
     //}
 }
 
@@ -224,14 +222,29 @@ view(struct http_request *request, const char *view)
     struct kore_buf     *buffer;
     size_t              length = 0;
 
-    buffer = kore_buf_alloc(asset_len_test_html);
-    kore_buf_append(buffer, asset_test_html, asset_len_test_html);
+    /* Retrieve base view */
+    char *baseview = include_asset(view);
+    if (!baseview) {
+        size_t len;
+        char *report = http_report(500, "View Not Found", &len);
+
+        http_response_header(request, "content-type", "text/html");
+        http_response(request, 500, report, len);
+        kore_free(report);
+        return (KORE_RESULT_OK);
+    }
+
+    size_t baseviewsz = strlen(baseview);
+    buffer = kore_buf_alloc(baseviewsz);
+    kore_buf_append(buffer, baseview, baseviewsz);
 
     /* Check for macros */
     char *escape = kore_mem_find(buffer->data, buffer->length, "@", 1);
     if (escape) {
         /* Parse view in order */
+        //TODO: check for cache
         process_include(buffer);
+        //TODO: save current buffer in cache
         process_vars(buffer);
         process_function(buffer);
     }
@@ -242,6 +255,5 @@ view(struct http_request *request, const char *view)
     http_response(request, 200, str, length);
 
     kore_buf_cleanup(buffer);
-
     return (KORE_RESULT_OK);
 }
