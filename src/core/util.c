@@ -59,6 +59,16 @@ random_string(unsigned char buffer[], size_t size, int nonblock)
     close(devfp);
 }
 
+int
+date_year(void)
+{
+    time_t timeval;
+
+    time(&timeval);
+    struct tm *tp = gmtime(&timeval);
+    return tp->tm_year + 1900;
+}
+
 const char *
 file_extension(const char *filename) {
     const char *dot = strrchr(filename, '.');
@@ -101,9 +111,9 @@ http_get_cookie(struct http_request *request, const char *name)
 int
 http_basic_auth(struct http_request *request, const char *auth)
 {
-    char *undecode = NULL;
-    size_t undecodelen;
-    char *header_auth = NULL;
+    char        *undecode = NULL;
+    size_t      undecodelen;
+    char        *header_auth = NULL;
 
     if (basic_auth_count >= 5) {
         sleep(2);
@@ -111,11 +121,11 @@ http_basic_auth(struct http_request *request, const char *auth)
     }
 
     http_request_header(request, "authorization", &header_auth);
-	if (header_auth == NULL) {
+    if (header_auth == NULL) {
         basic_auth_count++;
-		return 0;
+        return 0;
     }
-	
+    
     char *method = strtok(header_auth, " ");
     if (method == NULL) {
         basic_auth_count++;
@@ -140,17 +150,17 @@ http_basic_auth(struct http_request *request, const char *auth)
 char *
 http_remote_addr(struct http_request *request)
 {
-    static char astr[INET6_ADDRSTRLEN];
-    char *real_ip = NULL;
+    static char     astr[INET6_ADDRSTRLEN];
+    char            *real_ip = NULL;
 
     http_request_header(request, "x-forwarded-for", &real_ip);
-	if (real_ip != NULL) {
-		return real_ip;
+    if (real_ip != NULL) {
+        return real_ip;
     }
 
     http_request_header(request, "x-real-ip", &real_ip);
-	if (real_ip != NULL) {
-		return real_ip;
+    if (real_ip != NULL) {
+        return real_ip;
     }
 
     switch (request->owner->addrtype) {
@@ -165,54 +175,54 @@ http_remote_addr(struct http_request *request)
 
     }
 
-	return astr;
+    return astr;
 }
 
 char *
 http_report(int code, char *title, size_t *length)
 {
-	struct kore_buf		*buffer;
-	char 				strcode[4];
-	char 				*strtime;
+    struct kore_buf     *buffer;
+    char                strcode[4];
+    char                *strtime;
 
-	static const char *default_report =
-		"<html>"
-		"<head>"
-		"<title>Ayahesa Report</title>"
-		"<style>"
-		"table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
-		"th{background-color:#ed143d;color:#fff}"
-		"td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
-		"tr:nth-child(even){background-color:#f1f1f1}"
-		"</style>"
-		"</head>"
-		"<body>"
-		"<h1>$title$</h1>"
-		"<table>"
-		"<tr><th colspan=\"2\">Ayahesa report details</th></tr>"
-		"<tr><td>Code</td><td>$code$</td></tr>"
-		"<tr><td>Message</td><td>$title$</td></tr>"
-		"<tr><td>Occurrence</td><td>$time$</td></tr>"
-		"<tr><td>Framework version</td><td>" VERSION "</td></tr>"
-		"</table>"
-		"</body>"
-		"</html>";
+    static const char *default_report =
+        "<html>"
+        "<head>"
+        "<title>Ayahesa Report</title>"
+        "<style>"
+        "table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
+        "th{background-color:#ed143d;color:#fff}"
+        "td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
+        "tr:nth-child(even){background-color:#f1f1f1}"
+        "</style>"
+        "</head>"
+        "<body>"
+        "<h1>$title$</h1>"
+        "<table>"
+        "<tr><th colspan=\"2\">Ayahesa report details</th></tr>"
+        "<tr><td>Code</td><td>$code$</td></tr>"
+        "<tr><td>Message</td><td>$title$</td></tr>"
+        "<tr><td>Occurrence</td><td>$time$</td></tr>"
+        "<tr><td>Framework version</td><td>" VERSION "</td></tr>"
+        "</table>"
+        "</body>"
+        "</html>";
 
-	snprintf(strcode, 4, "%d", code);
-	strtime = kore_time_to_date(time(NULL));
+    snprintf(strcode, 4, "%d", code);
+    strtime = kore_time_to_date(time(NULL));
 
-	buffer = kore_buf_alloc(strlen(default_report));
-	kore_buf_append(buffer, default_report, strlen(default_report));
-	kore_buf_replace_string(buffer, "$title$", title, strlen(title));
-	kore_buf_replace_string(buffer, "$code$", strcode, 3);
-	kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
-	return (char *)kore_buf_release(buffer, length);
+    buffer = kore_buf_alloc(strlen(default_report));
+    kore_buf_append(buffer, default_report, strlen(default_report));
+    kore_buf_replace_string(buffer, "$title$", title, strlen(title));
+    kore_buf_replace_string(buffer, "$code$", strcode, 3);
+    kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
+    return (char *)kore_buf_release(buffer, length);
 }
 
 int
 jrpc_write_string(struct jsonrpc_request *req, void *ctx)
 {
-	const unsigned char *str = (unsigned char *)ctx;
+    const unsigned char *str = (unsigned char *)ctx;
 
-	return yajl_gen_string(req->gen, str, strlen((const char *)str));
+    return yajl_gen_string(req->gen, str, strlen((const char *)str));
 }

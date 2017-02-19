@@ -113,6 +113,28 @@ strisalpha(char *str)
     return 1;
 }
 
+char *
+aya_itoa(int i)
+{
+    static char buf[19 + 2];
+    char *p = buf + 19 + 1;	/* points to terminating '\0' */
+
+    if (i >= 0) {
+        do {
+        *--p = '0' + (i % 10);
+        i /= 10;
+        } while (i != 0);
+        return p;
+    } else {
+        do {
+            *--p = '0' - (i % 10);
+            i /= 10;
+        } while (i != 0);
+        *--p = '-';
+    }
+    return p;
+}
+
 /* Strip whitespace chars off end of given string, in place. Return s. */
 char *
 rstrip(char* s)

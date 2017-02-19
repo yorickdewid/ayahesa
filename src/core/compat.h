@@ -16,6 +16,7 @@
 char *aya_strncpy0(char *, const char *, size_t);
 size_t aya_strlcpy(char *, const char *, const size_t);
 size_t aya_strlcat(char *, const char *, const size_t);
+char *aya_itoa(int);
 char *strtolower(char *str);
 int strisalpha(char *str);
 char *rstrip(char* s);

@@ -14,5 +14,6 @@
 char        *generate_instance_id(void);
 void        random_string(unsigned char buffer[], size_t, int);
 const char  *file_extension(const char *filename);
+int         date_year(void);
 
 #endif // _AYAHESA_UTIL_H_
