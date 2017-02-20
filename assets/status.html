@@ -1,138 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="@name Status Page">
-        <meta name="author" content="@name">
-        <title>@name Status</title>
-
-        <style>
-        table {
-            font-family: arial,sans-serif;
-            border-collapse: collapse;
-            width: 100%
-        }
-
-        th { 
-            background-color:#9370db;
-            color:#fff
-        }
-
-        td, th{
-            border:1px solid #cccccc;
-            text-align:left;
-            padding:8px
-        }
-
-        tr:nth-child(even){
-            background-color:#f1f1f1
-        }
-        </style>
-    </head>
-    <body>
-        <h1>@name Core</h1>
-        <table>
-            <tr>
-                <th colspan="2">Application</th>
-            </tr>
-            <tr>
-                <td>Application</td>
-                <td>@name</td>
-            </tr>
-            <tr>
-                <td>Environment</td>
-                <td>@env</td>
-            </tr>
-            <tr>
-                <td>Session lifetime</td>
-                <td>@function(status_get_session_lifetime, 0)</td>
-            </tr>
-            <tr>
-                <td>Debug</td>
-                <td>@function(status_get_debug, 0)</td>
-            </tr>
-            <tr>
-                <td>Storage</td>
-                <td>@function(status_get_storage, 0)</td>
-            </tr>
-            <tr>
-                <th colspan="2">Environment</th>
-            </tr>
-            <tr>
-                <td>Method</td>
-                <td>@method</td>
-            </tr>
-            <tr>
-                <td>Path</td>
-                <td>@uri</td>
-            </tr>
-            <tr>
-                <td>Query string</td>
-                <td>@query_string</td>
-            </tr>
-            <tr>
-                <td>Host</td>
-                <td>@host</td>
-            </tr>
-            <tr>
-                <td>Agent</td>
-                <td>@agent</td>
-            </tr>
-            <tr>
-                <td>Remote</td>
-                <td>@remote_addr</td>
-            </tr>
-            @if(status_has_auth_user)
-            <tr>
-                <td>User</td>
-                <td>@user</td>
-            </tr>
-            @endif
-            <tr>
-                <th colspan="2">Core</th>
-            </tr>
-            <tr>
-                <td>Process</td>
-                <td>@function(status_get_pid, 0)</td>
-            </tr>
-            <tr>
-                <td>Instance</td>
-                <td>@instance</td>
-            </tr>
-            <tr>
-                <td>Domain</td>
-                <td>@domain</td>
-            </tr>
-            <tr>
-                <td>Uptime</td>
-                <td>@uptime</td>
-            </tr>
-            <tr>
-                <td>Requests</td>
-                <td>@function(status_get_requests, 0)</td>
-            </tr>
-            <tr>
-                <td>Active connections</td>
-                <td>@function(status_get_active_conn, 0)</td>
-            </tr>
-            <tr>
-                <td>Servertime</td>
-                <td>@date</td>
-            </tr>
-            <tr>
-                <td>Framework version</td>
-                <td>@function(status_get_framework_version, 0)</td>
-            </tr>
-            <tr>
-                <td>Accelerator version</td>
-                <td>@function(status_get_kore_version, 0)</td>
-            </tr>
-            <tr>
-                <td>License</td>
-                <td>BSD-3/@year</td>
-            </tr>
-        </table>
-    </body>
-</html>
+@template(layout)
+<table>
+    <tr>
+        <th colspan="2">Application</th>
+    </tr>
+    <tr>
+        <td>Application</td>
+        <td>@name</td>
+    </tr>
+    <tr>
+        <td>Environment</td>
+        <td>@env</td>
+    </tr>
+    <tr>
+        <td>Session lifetime</td>
+        <td>@function(status_get_session_lifetime, 0)</td>
+    </tr>
+    <tr>
+        <td>Debug</td>
+        <td>@function(status_get_debug, 0)</td>
+    </tr>
+    <tr>
+        <td>Storage</td>
+        <td>@function(status_get_storage, 0)</td>
+    </tr>
+    <tr>
+        <th colspan="2">Environment</th>
+    </tr>
+    <tr>
+        <td>Method</td>
+        <td>@method</td>
+    </tr>
+    <tr>
+        <td>Path</td>
+        <td>@uri</td>
+    </tr>
+    <tr>
+        <td>Query string</td>
+        <td>@query_string</td>
+    </tr>
+    <tr>
+        <td>Host</td>
+        <td>@host</td>
+    </tr>
+    <tr>
+        <td>Agent</td>
+        <td>@agent</td>
+    </tr>
+    <tr>
+        <td>Remote</td>
+        <td>@remote_addr</td>
+    </tr>
+    @if(status_has_auth_user)
+    <tr>
+        <td>User</td>
+        <td>@user</td>
+    </tr>
+    @endif
+    <tr>
+        <th colspan="2">Core</th>
+    </tr>
+    <tr>
+        <td>Process</td>
+        <td>@function(status_get_pid, 0)</td>
+    </tr>
+    <tr>
+        <td>Instance</td>
+        <td>@instance</td>
+    </tr>
+    <tr>
+        <td>Domain</td>
+        <td>@domain</td>
+    </tr>
+    <tr>
+        <td>Uptime</td>
+        <td>@uptime</td>
+    </tr>
+    <tr>
+        <td>Requests</td>
+        <td>@function(status_get_requests, 0)</td>
+    </tr>
+    <tr>
+        <td>Active connections</td>
+        <td>@function(status_get_active_conn, 0)</td>
+    </tr>
+    <tr>
+        <td>Servertime</td>
+        <td>@date</td>
+    </tr>
+    <tr>
+        <td>Framework version</td>
+        <td>@function(status_get_framework_version, 0)</td>
+    </tr>
+    <tr>
+        <td>Accelerator version</td>
+        <td>@function(status_get_kore_version, 0)</td>
+    </tr>
+    <tr>
+        <td>License</td>
+        <td>BSD-3/@year</td>
+    </tr>
+</table>
+@endtemplate

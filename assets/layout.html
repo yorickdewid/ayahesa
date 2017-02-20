@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="@name Status Page">
+        <meta name="author" content="@name">
+        <title>@name Status</title>
+
+        <style>
+        table {
+            font-family: arial,sans-serif;
+            border-collapse: collapse;
+            width: 100%
+        }
+
+        th { 
+            background-color:#9370db;
+            color:#fff
+        }
+
+        td, th{
+            border:1px solid #cccccc;
+            text-align:left;
+            padding:8px
+        }
+
+        tr:nth-child(even){
+            background-color:#f1f1f1
+        }
+        </style>
+    </head>
+    <body>
+        <h1>@name Core</h1>
+
+        <!-- Body -->
+        @yield
+        <!-- /Body -->
+
+    </body>
+</html>

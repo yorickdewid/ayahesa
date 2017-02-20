@@ -24,7 +24,7 @@
 
 #include "assets.h"
 
-#define VERSION "Ayahesa/0.6.1"
+#define VERSION "Ayahesa/0.6.2"
 #define CONFIG  "conf/framework.ini"
 
 #ifdef DEBUG
