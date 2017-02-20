@@ -34,24 +34,24 @@ route(root) { redirect("/app/welcome"); }
  */
 route(welcome)
 {
-	const char *default_page = 
-		"<html>"
-		"<head><title>Welcome to Ayahesa</title></head>"
-		"<body style=\"background-color:#333;color:#fff;\">"
-		"<div style=\"font-family:sans-serif;text-align:center;margin:260px;\">"
-		"<span style=\"font-size:50px;\">Welcome to Ayahesa</span>"
-		"</div>"
-		"</body>"
-		"</html>";
+    const char *default_page = 
+        "<html>"
+        "<head><title>Welcome to Ayahesa</title></head>"
+        "<body style=\"background-color:#333;color:#fff;\">"
+        "<div style=\"font-family:sans-serif;text-align:center;margin:260px;\">"
+        "<span style=\"font-size:50px;\">Welcome to Ayahesa</span>"
+        "</div>"
+        "</body>"
+        "</html>";
 
     /* Only accept GET requests */
-	http_get();
+    http_get();
 
-	http_response_header(request, "content-type", "text/html");
-	http_response(request, 200, default_page, strlen(default_page));
+    http_response_header(request, "content-type", "text/html");
+    http_response(request, 200, default_page, strlen(default_page));
 
-	/* We're good */
-	return_ok();
+    /* We're good */
+    return_ok();
 }
 
 /*
@@ -62,12 +62,28 @@ route(welcome)
 route(cookie)
 {
     /* Only accept GET requests */
-	http_get();
+    http_get();
 
     invoke(cookie);
 
-	/* We're good */
-	return_ok();
+    /* We're good */
+    return_ok();
+}
+
+/*
+ * Handle status request in controller
+ *
+ * Controller: status
+ */
+route(status)
+{
+    /* Only accept GET requests */
+    http_get();
+
+    invoke(get_status);
+
+    /* We're good */
+    return_ok();
 }
 
 /*
@@ -77,13 +93,10 @@ route(cookie)
  */
 route(resource)
 {
-	/* Only accept GET requests */
-	http_get();
-
     invoke(resource);
 
-	/* We're good */
-	return_ok();
+    /* We're good */
+    return_ok();
 }
 
 /*
@@ -93,17 +106,17 @@ route(resource)
  */
 endpoint(core)
 {
-	jrpc_parse();
+    jrpc_parse();
 
-	/* Endpoint info */
-	jrpc_info("Application core functions");
+    /* Endpoint info */
+    jrpc_info("Application core functions");
 
-	/* Call controller */
-	jrpc_invoke("echo", echo);
-	jrpc_invoke("date", date);
+    /* Call controller */
+    jrpc_invoke("echo", echo);
+    jrpc_invoke("date", date);
 
-	/* No method found */
-	jrpc_return_error();
+    /* No method found */
+    jrpc_return_error();
 }
 
 /*
@@ -113,18 +126,18 @@ endpoint(core)
  */
 endpoint(auth)
 {
-	jrpc_parse();
+    jrpc_parse();
 
-	/* Endpoint info */
-	jrpc_info("Authentication and authorization functions");
+    /* Endpoint info */
+    jrpc_info("Authentication and authorization functions");
 
-	/* Call controller */
-	jrpc_invoke("authenticate", jwt_authenticate);
-	jrpc_invoke("refresh", jwt_refresh);
-	jrpc_invoke("revoke", jwt_revoke);
+    /* Call controller */
+    jrpc_invoke("authenticate", jwt_authenticate);
+    jrpc_invoke("refresh", jwt_refresh);
+    jrpc_invoke("revoke", jwt_revoke);
 
-	/* No method found */
-	jrpc_return_error();
+    /* No method found */
+    jrpc_return_error();
 }
 
 /*
@@ -134,8 +147,8 @@ endpoint(auth)
  */
 endpoint(msg)
 {
-	invoke(msg);
+    invoke(msg);
 
-	/* We're good */
-	return_ok();
+    /* We're good */
+    return_ok();
 }

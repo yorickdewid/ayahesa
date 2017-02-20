@@ -154,14 +154,12 @@ http_remote_addr(struct http_request *request)
     char            *real_ip = NULL;
 
     http_request_header(request, "x-forwarded-for", &real_ip);
-    if (real_ip != NULL) {
+    if (real_ip)
         return real_ip;
-    }
 
     http_request_header(request, "x-real-ip", &real_ip);
-    if (real_ip != NULL) {
+    if (real_ip)
         return real_ip;
-    }
 
     switch (request->owner->addrtype) {
         case AF_INET:
@@ -176,6 +174,20 @@ http_remote_addr(struct http_request *request)
     }
 
     return astr;
+}
+
+char *
+http_auth_principal(struct http_request *request)
+{
+    struct request_data *data = NULL;
+    if (!request->hdlr_extra)
+        return NULL;
+
+    data = (struct request_data *)request->hdlr_extra;
+    if (!data->auth.principal)
+        return NULL;
+
+    return data->auth.principal;
 }
 
 char *

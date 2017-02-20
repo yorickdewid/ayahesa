@@ -28,18 +28,14 @@
 #define CONFIG  "conf/framework.ini"
 
 #ifdef DEBUG
-# define STATUSPAGE
 # define OPT_ROUTES
 #endif
 
 #ifdef TESTCASE
-# define STATUSPAGE
 # define OPT_ROUTES
 #endif
 
-#ifdef STATUSPAGE
-# define STATUSPAGE_AUTH "eve:ABC@123"
-#endif
+#define STATUSPAGE_AUTH "eve:ABC@123"
 
 #define T_FLAG_READONLY 0x1
 
@@ -136,6 +132,7 @@ char *          app_storage(void);
 const char *    http_get_cookie(struct http_request *, const char *);
 int             http_basic_auth(struct http_request *, const char *);
 char *          http_remote_addr(struct http_request *);
+char *          http_auth_principal(struct http_request *);
 char *          http_report(int code, char *title, size_t *length);
 
 /*

@@ -45,6 +45,7 @@ replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,void *dst,
     b->length = new_len;
 }
 
+//TODO: zero positional arguments
 static char **
 split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
 {
@@ -277,10 +278,12 @@ process_vars(struct http_request *request, struct kore_buf *buffer)
     char domainname[128];
     char methodname[8];
 
+    char *principal = http_auth_principal(request);
     char *year = aya_itoa(date_year());
     char *instance = app_instance();
     char *date = kore_time_to_date(time(NULL));
     char *appname = app_name();
+    char *auth_user = principal ? principal : "-";
     char *uptime = app_uptime();
     char *env = app_environment();
     char *uri = request->path;
@@ -298,7 +301,7 @@ process_vars(struct http_request *request, struct kore_buf *buffer)
     kore_buf_replace_string(buffer, "@instance", instance, strlen(instance));
     kore_buf_replace_string(buffer, "@date", date, strlen(date));
     kore_buf_replace_string(buffer, "@name", appname, strlen(appname));
-    kore_buf_replace_string(buffer, "@user", "Eve", 3);//TODO
+    kore_buf_replace_string(buffer, "@user", auth_user, strlen(auth_user));
     kore_buf_replace_string(buffer, "@uptime", uptime, strlen(uptime));
     kore_buf_replace_string(buffer, "@env", env, strlen(env));
     kore_buf_replace_string(buffer, "@domain", domainname, strlen(domainname));
