@@ -22,7 +22,7 @@
 #include <kore/jsonrpc.h>
 #include <kore/pgsql.h>
 
-#define VERSION "Ayahesa/0.6"
+#define VERSION "Ayahesa/0.6.1"
 #define CONFIG  "conf/framework.ini"
 
 #ifdef DEBUG

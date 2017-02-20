@@ -10,13 +10,17 @@
 
 #include "../include/ayahesa.h"
 
+#include "util.h"
+#include <time.h>
 #include <dlfcn.h>
 
-#define TOk_INCLUDE     "@include("
-#define TOk_FUNCTION    "@function("
-#define TOk_IF          "@if("
-#define TOk_ENDIF       "@endif"
-#define TOk_CLOSE       ')'
+#define TOk_INCLUDE        "@include("
+#define TOk_FUNCTION       "@function("
+#define TOk_TEMPLATE       "@template("
+#define TOk_ENDTEMPLATE    "@endtemplate"
+#define TOk_IF             "@if("
+#define TOk_ENDIF          "@endif"
+#define TOk_CLOSE          ')'
 
 static void
 replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,void *dst, size_t len)
@@ -67,17 +71,13 @@ include_asset(const char *name)
     char buffer[64];
 
     snprintf(buffer, 64, "asset_%s_html", name);
-    puts(buffer);
 
     void *hndl = dlopen(NULL, RTLD_LAZY);
-    if (!hndl) {
-        puts("dlopen");
+    if (!hndl)
         return NULL;
-    }
 
     char *asset = dlsym(hndl, buffer);
     if (!asset) {
-        puts("dlsym");
         dlclose(hndl);
         return NULL;
     }
@@ -93,22 +93,17 @@ call_vfunc(int argc, char *argv[])
     decl_vfunc vfunc;
 
     void *hndl = dlopen(NULL, RTLD_LAZY);
-    if (!hndl) {
-        puts("dlopen");
+    if (!hndl)
         return NULL;
-    }
 
     *(char **)(&vfunc) = dlsym(hndl, argv[0]);
     if (!vfunc) {
-        puts("dlsym");
         dlclose(hndl);
         return NULL;
     }
 
-    char *response = vfunc(argc, argv);
-
     dlclose(hndl);
-    return response;
+    return vfunc(argc, argv);
 }
 
 static char *
@@ -124,20 +119,59 @@ parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz,
         return NULL;
 
     char *pos_start = include + tokensz;
-    printf("pos_end %c\n", pos_end[0]);
-    printf("pos_start %c\n", pos_start[0]);
+    // printf("pos_end %c\n", pos_end[0]);
+    // printf("pos_start %c\n", pos_start[0]);
 
     *argumentsz = pos_end - pos_start;
-    printf("Argument sz %zu\n", *argumentsz);
-    printf("Argument '%.*s'\n", (int)*argumentsz, pos_start);
+    // printf("Argument sz %zu\n", *argumentsz);
+    // printf("Argument '%.*s'\n", (int)*argumentsz, pos_start);
 
     *posx_start = include;
-    printf("Start char: %c\n", (*posx_start)[0]);
+    // printf("Start char: %c\n", (*posx_start)[0]);
     *posx_length = (pos_start + *argumentsz) - *posx_start;
-    printf("Length: %zu\n", *posx_length );
-    printf("End char: %c\n", (*posx_start + *posx_length)[0]);
+    // printf("Length: %zu\n", *posx_length );
+    // printf("End char: %c\n", (*posx_start + *posx_length)[0]);
 
     return pos_start;
+}
+
+static void
+process_template(struct kore_buf **buffer)
+{
+    char            *argument;
+    char            *pos_start;
+    size_t          argumentsz;
+    size_t          pos_length;
+
+    argumentsz = 0;
+    argument = parser(*buffer, TOk_TEMPLATE, sizeof(TOk_TEMPLATE) - 1, &argumentsz, &pos_start, &pos_length);
+    if (!argument || !argumentsz)
+        return;
+
+    argument[argumentsz] = '\0';
+
+    /* Find template */
+    char *asset = include_asset(argument);
+    if (!asset)
+        return;
+
+    /* Block beginning and end */
+    char *begin = argument + argumentsz + 1;
+    char *end = kore_mem_find((*buffer)->data, (*buffer)->length, TOk_ENDTEMPLATE, sizeof(TOk_ENDTEMPLATE) - 1);
+    if (!end)
+        return;
+
+    end[0] = '\0';
+
+    /* Convert asset into buffer */
+    size_t assetsz = strlen(asset);
+    struct kore_buf *template_buffer = kore_buf_alloc(assetsz);
+    kore_buf_append(template_buffer, asset, assetsz);
+
+    /* Replace yield and swap buffers */
+    kore_buf_replace_string(template_buffer, "@yield", begin, strlen(begin));
+    kore_buf_cleanup(*buffer);
+    *buffer = template_buffer;
 }
 
 static void
@@ -165,11 +199,11 @@ process_include(struct kore_buf *buffer)
     }
 }
 
+//TODO: remove
 char *foo_bar(int argc, char *argv[]);
 char *
 foo_bar(int argc, char *argv[])
 {
-    puts("JUPS");
     return "This is foo <b>bar</b>";
 }
 
@@ -187,10 +221,8 @@ process_function(struct kore_buf *buffer)
         if (!argument || !argumentsz)
             return;
 
-        argument[argumentsz] = '\0';
-        printf("Execute: %s\n", argument);
-
         int argc;
+        argument[argumentsz] = '\0';
         char **argv = split_arguments(argument, argumentsz, &argc);
         if (!argc)
             return;
@@ -199,6 +231,7 @@ process_function(struct kore_buf *buffer)
 
         kore_free(argv);
 
+        /* Replace substring */
         replace_string(buffer, pos_start, pos_length, str, strlen(str));
     //}
 }
@@ -207,11 +240,18 @@ process_function(struct kore_buf *buffer)
 static void
 process_vars(struct kore_buf *buffer)
 {
-    kore_buf_replace_string(buffer, "@year", "2017", 4);
-    kore_buf_replace_string(buffer, "@instance", "SRV1", 4);
-    kore_buf_replace_string(buffer, "@date", "Sun Feb  5 00:48:22 CET 2017", 28);
-    kore_buf_replace_string(buffer, "@name", "Ayahesa", 7);
-    kore_buf_replace_string(buffer, "@user", "Eve", 3);
+    char *year = aya_itoa(date_year());
+    char *instance = app_instance();
+    char *date = kore_time_to_date(time(NULL));
+    char *appname = app_name();
+    char *uptime = app_uptime();
+
+    kore_buf_replace_string(buffer, "@year", year, 4);
+    kore_buf_replace_string(buffer, "@instance", instance, strlen(instance));
+    kore_buf_replace_string(buffer, "@date", date, strlen(date));
+    kore_buf_replace_string(buffer, "@name", appname, strlen(appname));
+    kore_buf_replace_string(buffer, "@user", "Eve", 3);//TODO
+    kore_buf_replace_string(buffer, "@uptime", uptime, strlen(uptime));
     kore_buf_replace_string(buffer, TOk_IF, "", 0);//TODO
     kore_buf_replace_string(buffer, TOk_ENDIF, "", 0);//TODO
 }
@@ -243,6 +283,7 @@ view(struct http_request *request, const char *view)
     if (escape) {
         /* Parse view in order */
         //TODO: check for cache
+        process_template(&buffer);
         process_include(buffer);
         //TODO: save current buffer in cache
         process_vars(buffer);
