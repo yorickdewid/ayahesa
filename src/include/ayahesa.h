@@ -22,6 +22,8 @@
 #include <kore/jsonrpc.h>
 #include <kore/pgsql.h>
 
+#include "assets.h"
+
 #define VERSION "Ayahesa/0.6.1"
 #define CONFIG  "conf/framework.ini"
 

@@ -136,18 +136,11 @@ parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz,
         return NULL;
 
     char *pos_start = include + tokensz;
-    // printf("pos_end %c\n", pos_end[0]);
-    // printf("pos_start %c\n", pos_start[0]);
 
     *argumentsz = pos_end - pos_start;
-    // printf("Argument sz %zu\n", *argumentsz);
-    // printf("Argument '%.*s'\n", (int)*argumentsz, pos_start);
 
     *posx_start = include;
-    // printf("Start char: %c\n", (*posx_start)[0]);
     *posx_length = (pos_start + *argumentsz) - *posx_start;
-    // printf("Length: %zu\n", *posx_length );
-    // printf("End char: %c\n", (*posx_start + *posx_length)[0]);
 
     return pos_start;
 }
@@ -224,7 +217,7 @@ process_function(struct kore_buf *buffer)
     size_t          argumentsz;
     size_t          pos_length;
 
-    //for (;;) {
+    for (;;) {
         argumentsz = 0;
         argument = parser(buffer, TOk_FUNCTION, sizeof(TOk_FUNCTION) - 1, &argumentsz, &pos_start, &pos_length);
         if (!argument || !argumentsz)
@@ -242,7 +235,7 @@ process_function(struct kore_buf *buffer)
 
         /* Replace substring */
         replace_string(buffer, pos_start, pos_length, str, strlen(str));
-    //}
+    }
 }
 
 static void
@@ -253,7 +246,7 @@ process_statement(struct kore_buf *buffer)
     size_t          argumentsz;
     size_t          pos_length;
 
-    //for (;;) {
+    for (;;) {
         argumentsz = 0;
         argument = parser(buffer, TOk_IF, sizeof(TOk_IF) - 1, &argumentsz, &pos_start, &pos_length);
         if (!argument || !argumentsz)
@@ -274,18 +267,32 @@ process_statement(struct kore_buf *buffer)
         /* Replace substring */
         replace_string(buffer, pos_start, replace_len, NULL, 0);
         kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);
-    //}
+    }
 }
 
 /* Easy substitution */
 static void
-process_vars(struct kore_buf *buffer)
+process_vars(struct http_request *request, struct kore_buf *buffer)
 {
+    char domainname[128];
+    char methodname[8];
+
     char *year = aya_itoa(date_year());
     char *instance = app_instance();
     char *date = kore_time_to_date(time(NULL));
     char *appname = app_name();
     char *uptime = app_uptime();
+    char *env = app_environment();
+    char *uri = request->path;
+    char *query_string = request->query_string ? request->query_string : "-";
+    char *host = request->host;
+    char *agent = request->agent;
+    char *remote_addr = http_remote_addr(request);
+
+    const char *domain = app_domainname();
+    aya_strlcpy(domainname, domain, 128);
+    const char *method = http_method_text(request->method);
+    aya_strlcpy(methodname, method, 8);
 
     kore_buf_replace_string(buffer, "@year", year, 4);
     kore_buf_replace_string(buffer, "@instance", instance, strlen(instance));
@@ -293,6 +300,14 @@ process_vars(struct kore_buf *buffer)
     kore_buf_replace_string(buffer, "@name", appname, strlen(appname));
     kore_buf_replace_string(buffer, "@user", "Eve", 3);//TODO
     kore_buf_replace_string(buffer, "@uptime", uptime, strlen(uptime));
+    kore_buf_replace_string(buffer, "@env", env, strlen(env));
+    kore_buf_replace_string(buffer, "@domain", domainname, strlen(domainname));
+    kore_buf_replace_string(buffer, "@method", methodname, strlen(methodname));
+    kore_buf_replace_string(buffer, "@uri", uri, strlen(uri));
+    kore_buf_replace_string(buffer, "@query_string", query_string, strlen(query_string));
+    kore_buf_replace_string(buffer, "@host", host, strlen(host));
+    kore_buf_replace_string(buffer, "@agent", agent, strlen(agent));
+    kore_buf_replace_string(buffer, "@remote_addr", remote_addr, strlen(remote_addr));
 }
 
 int
@@ -325,9 +340,9 @@ view(struct http_request *request, const char *view)
         process_template(&buffer);
         process_include(buffer);
         //TODO: save current buffer in cache
-        process_vars(buffer);
         process_function(buffer);
         process_statement(buffer);
+        process_vars(request, buffer);
     }
 
     /* Convert and respond */
