@@ -106,6 +106,23 @@ call_vfunc(int argc, char *argv[])
     return vfunc(argc, argv);
 }
 
+static int
+get_vvar(char *var)
+{
+    void *hndl = dlopen(NULL, RTLD_LAZY);
+    if (!hndl)
+        return -1;
+
+    void *vvar = dlsym(hndl, var);
+    if (!vvar) {
+        dlclose(hndl);
+        return -1;
+    }
+
+    dlclose(hndl);
+    return (*(int *)vvar);
+}
+
 static char *
 parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz, char **posx_start, size_t *posx_length)
 {
@@ -199,14 +216,6 @@ process_include(struct kore_buf *buffer)
     }
 }
 
-//TODO: remove
-char *foo_bar(int argc, char *argv[]);
-char *
-foo_bar(int argc, char *argv[])
-{
-    return "This is foo <b>bar</b>";
-}
-
 static void
 process_function(struct kore_buf *buffer)
 {
@@ -236,6 +245,38 @@ process_function(struct kore_buf *buffer)
     //}
 }
 
+static void
+process_statement(struct kore_buf *buffer)
+{
+    char            *argument;
+    char            *pos_start;
+    size_t          argumentsz;
+    size_t          pos_length;
+
+    //for (;;) {
+        argumentsz = 0;
+        argument = parser(buffer, TOk_IF, sizeof(TOk_IF) - 1, &argumentsz, &pos_start, &pos_length);
+        if (!argument || !argumentsz)
+            return;
+
+        argument[argumentsz] = '\0';
+
+        char *end = kore_mem_find(buffer->data, buffer->length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
+        if (!end)
+            return;
+
+        int booly = get_vvar(argument);
+        if (booly < 0)
+            return;
+
+        size_t replace_len = booly ? pos_length : (size_t)(end - pos_start);
+
+        /* Replace substring */
+        replace_string(buffer, pos_start, replace_len, NULL, 0);
+        kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);
+    //}
+}
+
 /* Easy substitution */
 static void
 process_vars(struct kore_buf *buffer)
@@ -252,8 +293,6 @@ process_vars(struct kore_buf *buffer)
     kore_buf_replace_string(buffer, "@name", appname, strlen(appname));
     kore_buf_replace_string(buffer, "@user", "Eve", 3);//TODO
     kore_buf_replace_string(buffer, "@uptime", uptime, strlen(uptime));
-    kore_buf_replace_string(buffer, TOk_IF, "", 0);//TODO
-    kore_buf_replace_string(buffer, TOk_ENDIF, "", 0);//TODO
 }
 
 int
@@ -288,6 +327,7 @@ view(struct http_request *request, const char *view)
         //TODO: save current buffer in cache
         process_vars(buffer);
         process_function(buffer);
+        process_statement(buffer);
     }
 
     /* Convert and respond */
