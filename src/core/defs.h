@@ -70,22 +70,22 @@
 #define redirect(l) \
     http_response_header(request, "location", l); \
     http_response(request, 302, NULL, 0); \
-    return (KORE_RESULT_OK);
+    return_ok();
 
 #define write_plain(t) \
     http_response_header(request, "content-type", "text/plain"); \
     http_response(request, 200, t, strlen(t)); \
-    return (KORE_RESULT_OK);
+    return_ok();
 
 #define write_html(t) \
     http_response_header(request, "content-type", "text/html"); \
     http_response(request, 200, t, strlen(t)); \
-    return (KORE_RESULT_OK);
+    return_ok();
 
 #define asset_html(t) \
     http_response_header(request, "content-type", "text/html"); \
     http_response(request, 200, asset_##t##_html, asset_len_##t##_html); \
-    return (KORE_RESULT_OK);
+    return_ok();
 
 /*
  * Endpoint directives
@@ -139,5 +139,9 @@
 #define controller(c) \
     int controller_##c(struct http_request *, void *); \
     int controller_##c(struct http_request *request, void *data)
+
+#define view_method(c,m) \
+    char *c##_##m(int argc, char *argv[]); \
+    char *c##_##m(int argc, char *argv[])
 
 #endif // _AYAHESA_DEFS_H_

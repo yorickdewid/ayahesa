@@ -354,5 +354,5 @@ view(struct http_request *request, const char *view)
     http_response(request, 200, str, length);
 
     kore_buf_cleanup(buffer);
-    return (KORE_RESULT_OK);
+    return_ok();
 }

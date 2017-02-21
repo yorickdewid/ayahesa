@@ -14,58 +14,42 @@
 
 int status_has_auth_user = 0;
 
-char *status_get_session_lifetime(int argc, char *argv[]);
-char *
-status_get_session_lifetime(int argc, char *argv[])
+view_method(status, get_session_lifetime)
 {
     return aya_itoa(app_session_lifetime());
 }
 
-char *status_get_debug(int argc, char *argv[]);
-char *
-status_get_debug(int argc, char *argv[])
+view_method(status, get_debug)
 {
     return app_isdebug() ? "True" : "False";
 }
 
-char *status_get_storage(int argc, char *argv[]);
-char *
-status_get_storage(int argc, char *argv[])
+view_method(status, get_storage)
 {
     return app_storage();
 }
 
-char *status_get_pid(int argc, char *argv[]);
-char *
-status_get_pid(int argc, char *argv[])
+view_method(status, get_pid)
 {
     return aya_itoa(getpid());
 }
 
-char *status_get_requests(int argc, char *argv[]);
-char *
-status_get_requests(int argc, char *argv[])
+view_method(status, get_requests)
 {
     return aya_itoa(app_request_count());
 }
 
-char *status_get_active_conn(int argc, char *argv[]);
-char *
-status_get_active_conn(int argc, char *argv[])
+view_method(status, get_active_conn)
 {
     return aya_itoa(app_active_conncount());
 }
 
-char *status_get_framework_version(int argc, char *argv[]);
-char *
-status_get_framework_version(int argc, char *argv[])
+view_method(status, get_framework_version)
 {
     return VERSION;
 }
 
-char *status_get_kore_version(int argc, char *argv[]);
-char *
-status_get_kore_version(int argc, char *argv[])
+view_method(status, get_kore_version)
 {
     static char kversion[32];
     snprintf(kversion, 32, "Kore/%d.%d.%d-%s",

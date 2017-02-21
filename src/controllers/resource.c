@@ -119,7 +119,6 @@ get_resource(struct http_request *request, struct request_data *auth)
     http_response(request, 200, string, file_size);
 
     kore_free(string);
-
     return_ok();
 }
 
