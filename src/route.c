@@ -28,6 +28,7 @@
 route(report) { write_plain("Reporting back"); }
 route(html) { write_html("<h1>Important!</h1>"); }
 route(root) { redirect("/app/welcome"); }
+route(static) { asset_html(static); }
 
 /*
  * Welcome page, show some framework love
@@ -35,7 +36,8 @@ route(root) { redirect("/app/welcome"); }
 route(welcome)
 {
     const char *default_page = 
-        "<html>"
+        "<!DOCTYPE html>"
+        "<html lang=\"en\">"
         "<head><title>Welcome to Ayahesa</title></head>"
         "<body style=\"background-color:#333;color:#fff;\">"
         "<div style=\"font-family:sans-serif;text-align:center;margin:260px;\">"
