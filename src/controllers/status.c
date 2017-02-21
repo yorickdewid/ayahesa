@@ -65,11 +65,17 @@ view_method(status, get_kore_version)
  *
  * Retrieve status page. See the
  * static asset for the HTML view.
+ * Headers are set to prevent client
+ * side caching.
  */
 controller(get_status)
 {
     if (http_auth_principal(request))
         status_has_auth_user = 1;
 
-    return view(request, "status");
+    http_response_header(request, "cache-control", "no-cache,no-store,must-revalidate");
+    http_response_header(request, "pragma", "no-cache");
+    http_response_header(request, "expires", "0");
+    http_view(request, 200, "status");
+    return_ok();
 }

@@ -162,5 +162,6 @@ void  crypt_sign(const unsigned char *, size_t, unsigned char *, size_t *,
         const unsigned char *, size_t);
 
 int   view(struct http_request *, const char *);
+int   http_view(struct http_request *, int, const char *);
 
 #endif // _AYAHESA_H_

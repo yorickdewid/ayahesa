@@ -52,6 +52,12 @@ split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
     char **argv = (char **)kore_calloc(16, sizeof(char *));
     *argc = 0;
 
+    if (!strchr(cmdline, ',')) {
+        (*argc)++;
+        argv[0] = cmdline;
+        return argv;
+    }
+
     size_t i; char *next = cmdline;
     for (i=0; i<cmdlinesz && *argc < 16; ++i) {
         if (cmdline[i] == ',') {
@@ -313,6 +319,51 @@ process_vars(struct http_request *request, struct kore_buf *buffer)
     kore_buf_replace_string(buffer, "@remote_addr", remote_addr, strlen(remote_addr));
 }
 
+int
+http_view(struct http_request *request, int code, const char *view)
+{
+    struct kore_buf     *buffer;
+    size_t              length = 0;
+
+    /* Retrieve base view */
+    char *baseview = include_asset(view);
+    if (!baseview) {
+        size_t len;
+        char *report = http_report(500, "View Not Found", &len);
+
+        http_response_header(request, "content-type", "text/html");
+        http_response(request, 500, report, len);
+        kore_free(report);
+        return_ok();
+    }
+
+    size_t baseviewsz = strlen(baseview);
+    buffer = kore_buf_alloc(baseviewsz);
+    kore_buf_append(buffer, baseview, baseviewsz);
+
+    /* Check for macros */
+    char *escape = kore_mem_find(buffer->data, buffer->length, "@", 1);
+    if (escape) {
+        /* Parse view in order */
+        //TODO: check for cache
+        process_template(&buffer);
+        process_include(buffer);
+        //TODO: save current buffer in cache
+        process_function(buffer);
+        process_statement(buffer);
+        process_vars(request, buffer);
+    }
+
+    /* Convert and respond */
+    char *str = kore_buf_stringify(buffer, &length);
+    http_response_header(request, "content-type", "text/html");
+    http_response(request, code, str, length);
+
+    kore_buf_cleanup(buffer);
+    return_ok();
+}
+
+//TODO: move into defs
 int
 view(struct http_request *request, const char *view)
 {
