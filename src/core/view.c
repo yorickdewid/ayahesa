@@ -64,10 +64,14 @@ split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
             cmdline[i++] = '\0';
 
             /* Arguments */
-            argv[(*argc)++] = next;//TODO: skip whitespace
+            argv[(*argc)++] = trim(next);
             next = cmdline + i;
         }
     }
+
+    /* Arguments */
+    argv[(*argc)++] = trim(next);
+    next = cmdline + i;
 
     return argv;
 }
