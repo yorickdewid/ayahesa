@@ -166,6 +166,7 @@ process_template(struct kore_buf **buffer)
         return;
 
     argument[argumentsz] = '\0';
+    argument = trim(argument);
 
     /* Find template */
     char *asset = include_asset(argument);
@@ -207,6 +208,7 @@ process_include(struct kore_buf *buffer)
             return;
 
         argument[argumentsz] = '\0';
+        argument = trim(argument);
         char *asset = include_asset(argument);
         if (!asset)
             return;
@@ -232,6 +234,7 @@ process_function(struct kore_buf *buffer)
 
         int argc;
         argument[argumentsz] = '\0';
+        argument = trim(argument);
         char **argv = split_arguments(argument, argumentsz, &argc);
         if (!argc)
             return;
@@ -260,7 +263,7 @@ process_statement(struct kore_buf *buffer)
             return;
 
         argument[argumentsz] = '\0';
-
+        argument = trim(argument);
         char *end = kore_mem_find(buffer->data, buffer->length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
         if (!end)
             return;
@@ -358,51 +361,6 @@ http_view(struct http_request *request, int code, const char *view)
     char *str = kore_buf_stringify(buffer, &length);
     http_response_header(request, "content-type", "text/html");
     http_response(request, code, str, length);
-
-    kore_buf_cleanup(buffer);
-    return_ok();
-}
-
-//TODO: move into defs
-int
-view(struct http_request *request, const char *view)
-{
-    struct kore_buf     *buffer;
-    size_t              length = 0;
-
-    /* Retrieve base view */
-    char *baseview = include_asset(view);
-    if (!baseview) {
-        size_t len;
-        char *report = http_report(500, "View Not Found", &len);
-
-        http_response_header(request, "content-type", "text/html");
-        http_response(request, 500, report, len);
-        kore_free(report);
-        return (KORE_RESULT_OK);
-    }
-
-    size_t baseviewsz = strlen(baseview);
-    buffer = kore_buf_alloc(baseviewsz);
-    kore_buf_append(buffer, baseview, baseviewsz);
-
-    /* Check for macros */
-    char *escape = kore_mem_find(buffer->data, buffer->length, "@", 1);
-    if (escape) {
-        /* Parse view in order */
-        //TODO: check for cache
-        process_template(&buffer);
-        process_include(buffer);
-        //TODO: save current buffer in cache
-        process_function(buffer);
-        process_statement(buffer);
-        process_vars(request, buffer);
-    }
-
-    /* Convert and respond */
-    char *str = kore_buf_stringify(buffer, &length);
-    http_response_header(request, "content-type", "text/html");
-    http_response(request, 200, str, length);
 
     kore_buf_cleanup(buffer);
     return_ok();

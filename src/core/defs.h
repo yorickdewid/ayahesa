@@ -25,14 +25,14 @@
     if (request->method != HTTP_METHOD_GET) { \
         http_response_header(request, "allow", "GET"); \
         http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
-        return (KORE_RESULT_OK); \
+        return_ok(); \
     }
 
 #define http_post() \
     if (request->method != HTTP_METHOD_POST) { \
         http_response_header(request, "allow", "POST"); \
         http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
-        return (KORE_RESULT_OK); \
+        return_ok(); \
     }
 
 #define http_post_put() \
@@ -40,7 +40,7 @@
         request->method != HTTP_METHOD_PUT) { \
         http_response_header(request, "allow", "POST,PUT"); \
         http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
-        return (KORE_RESULT_OK); \
+        return_ok(); \
     }
 
 /*
@@ -87,6 +87,10 @@
     http_response(request, 200, asset_##t##_html, asset_len_##t##_html); \
     return_ok();
 
+#define view(v) \
+    http_view(request, 200, #v); \
+    return_ok();
+
 /*
  * Endpoint directives
  */
@@ -106,7 +110,7 @@
     if (request->method != HTTP_METHOD_POST && request->method != HTTP_METHOD_PUT) { \
         http_response_header(request, "allow", "POST,PUT"); \
         http_response(request, HTTP_STATUS_METHOD_NOT_ALLOWED, NULL, 0); \
-        return (KORE_RESULT_OK); \
+        return_ok(); \
     } \
     if ((ret = jsonrpc_read_request(request, &_request)) != 0) { \
         return jsonrpc_error(&_request, ret, NULL); \

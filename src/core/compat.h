@@ -13,6 +13,9 @@
 
 #include <string.h>
 
+#define trim(s) \
+    lskip(rstrip(s))
+
 char *aya_strncpy0(char *, const char *, size_t);
 size_t aya_strlcpy(char *, const char *, const size_t);
 size_t aya_strlcat(char *, const char *, const size_t);
