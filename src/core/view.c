@@ -19,6 +19,7 @@
 #define TOk_TEMPLATE       "@template("
 #define TOk_ENDTEMPLATE    "@endtemplate"
 #define TOk_IF             "@if("
+#define TOk_ELSE           "@else"
 #define TOk_ENDIF          "@endif"
 #define TOk_CLOSE          ')'
 
@@ -45,13 +46,13 @@ replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,void *dst,
     b->length = new_len;
 }
 
-//TODO: zero positional arguments
 static char **
 split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
 {
     char **argv = (char **)kore_calloc(16, sizeof(char *));
     *argc = 0;
 
+    /* Signle argument chec */
     if (!strchr(cmdline, ',')) {
         (*argc)++;
         argv[0] = cmdline;
@@ -69,7 +70,7 @@ split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
         }
     }
 
-    /* Arguments */
+    /* Last argument */
     argv[(*argc)++] = trim(next);
     next = cmdline + i;
 
@@ -262,25 +263,58 @@ process_statement(struct kore_buf *buffer)
 
     for (;;) {
         argumentsz = 0;
+
+        /* Find IF token */
         argument = parser(buffer, TOk_IF, sizeof(TOk_IF) - 1, &argumentsz, &pos_start, &pos_length);
         if (!argument || !argumentsz)
             return;
-
+        
         argument[argumentsz] = '\0';
         argument = trim(argument);
-        char *end = kore_mem_find(buffer->data, buffer->length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
+
+        /* Find ENDIF token */
+        char *end = kore_mem_find(argument, buffer->length - pos_length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
         if (!end)
             return;
 
-        int booly = get_vvar(argument);
-        if (booly < 0)
+        /* Find ELSE token */
+        char *middle = kore_mem_find(argument, end - pos_start, TOk_ELSE, sizeof(TOk_ELSE) - 1);
+
+        /* Evaluate condition */
+        int res = get_vvar(argument);
+        if (res < 0)
             return;
 
-        size_t replace_len = booly ? pos_length : (size_t)(end - pos_start);
+        size_t replace_len = (size_t)(end - pos_start);
+        if (!middle) {
+            if (res)
+                replace_len = pos_length;
+        } else {
+            if (res) {
+                replace_len = pos_length;
+            } else {
+                replace_len = (size_t)(middle - pos_start);
+            }
+        }
 
         /* Replace substring */
         replace_string(buffer, pos_start, replace_len, NULL, 0);
-        kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);
+
+        if (middle) {
+            /* Find ELSE token in new buffer */
+            middle = kore_mem_find(buffer->data, buffer->length, TOk_ELSE, sizeof(TOk_ELSE) - 1);
+            if (!middle)
+                return;
+
+            /* Find ENDIF token in new buffer */
+            end = kore_mem_find(buffer->data, buffer->length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
+            if (!end)
+                return;
+
+            replace_string(buffer, middle, end - middle, NULL, 0);
+        }
+        
+        kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);//TODO: this removes all
     }
 }
 
