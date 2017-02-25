@@ -1,3 +1,5 @@
+@var(title, Status page)
+
 @template(layout)
 <table>
     <tr>
@@ -50,6 +52,7 @@
         <td>Remote</td>
         <td>@remote_addr</td>
     </tr>
+    @/* Show the user only if there is authentication */@
     @if( status_has_auth_user )
     <tr>
         <td>User</td>

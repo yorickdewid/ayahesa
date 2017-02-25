@@ -22,6 +22,8 @@
 #define TOk_ELSE           "@else"
 #define TOk_ENDIF          "@endif"
 #define TOk_CLOSE          ')'
+#define TOk_COMMENT_OPEN   "@/*"
+#define TOk_COMMENT_CLOSE  "*/@"
 
 static char **
 split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
@@ -175,6 +177,22 @@ process_template(struct kore_buf **buffer)
 }
 
 static void
+process_comment(struct kore_buf *buffer)
+{
+    /* Comment block beginning and end */
+    char *begin = kore_mem_find(buffer->data, buffer->length, TOk_COMMENT_OPEN, sizeof(TOk_COMMENT_OPEN) - 1);
+    if (!begin)
+        return;
+
+    char *end = kore_mem_find(buffer->data, buffer->length, TOk_COMMENT_CLOSE, sizeof(TOk_COMMENT_CLOSE) - 1);
+    if (!end)
+        return;
+
+    /* Replace substring */
+    aya_buf_replace_string(buffer, begin, (end - begin) + sizeof(TOk_COMMENT_CLOSE) - 1, NULL, 0);
+}
+
+static void
 process_include(struct kore_buf *buffer)
 {
     char            *argument;
@@ -291,7 +309,6 @@ process_statement(struct kore_buf *buffer)
             aya_buf_replace_string(buffer, middle, end - middle, NULL, 0);
         }
         
-        // kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);//TODO: this removes all
         aya_buf_replace_first_string(buffer, TOk_ENDIF, NULL, 0);
     }
 }
@@ -367,6 +384,7 @@ http_view(struct http_request *request, int code, const char *view)
         //TODO: check for cache
         process_template(&buffer);
         process_include(buffer);
+        process_comment(buffer);
         //TODO: save current buffer in cache
         process_function(buffer);
         process_statement(buffer);
