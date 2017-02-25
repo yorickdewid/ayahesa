@@ -93,12 +93,14 @@ aya_disconnect(struct connection *c)
 int
 notfound(struct http_request *request)
 {
-    size_t len;
-    char *report = http_report(404, "Not Found", &len);
+    http_report(request, 404, "Not Found");
 
-    http_response_header(request, "content-type", "text/html");
-    http_response(request, 404, report, len);
-    kore_free(report);
+    /* Release session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    tree_free(session->session);
+    kore_free(request->hdlr_extra);
+    request->hdlr_extra = NULL;
+
     return_ok();
 }
 
@@ -129,40 +131,26 @@ aya_readme(struct http_request *request)
 int
 aya_shutdown_parent(struct http_request *request)
 {
-    size_t len;
-    char *report = http_report(435, "External shutdown request", &len);
+    http_report(request, 435, "External shutdown request");
+
+    /* Release session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    tree_free(session->session);
+    kore_free(request->hdlr_extra);
+    request->hdlr_extra = NULL;
 
     kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
-    http_response_header(request, "content-type", "text/html");
-    http_response(request, 435, report, len);
-    kore_free(report);
+
     return_ok();
 }
 
 int
 aya_fox(struct http_request *request)
 {
-    if (!request->hdlr_extra)
-        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
-
-    /* Setup session tree */
-    struct request_data *session = (struct request_data *)request->hdlr_extra;
-    session->session = (app_t *)kore_malloc(sizeof(app_t));
-    session->session->type = T_NULL;
-    session->session->flags = 0;
-    session->session->key = NULL;
-    tree_new_root(session->session);
-
-    /* Push view variables */
-    tree_put_str(session->session, "background-clr", "#ed143d");
-    tree_put_str(session->session, "title", "I'm a Fox");
-    tree_put_str(session->session, "code", "419");
-    tree_put_str(session->session, "msg", "I'm a Fox");
-
-    /* Parse view */
-    http_view(request, 419, "report");
+    http_report(request, 419, "I'm a Fox");
 
     /* Release session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
     kore_free(request->hdlr_extra);
     request->hdlr_extra = NULL;
@@ -173,12 +161,14 @@ aya_fox(struct http_request *request)
 int
 aya_teapot(struct http_request *request)
 {
-    size_t len;
-    char *report = http_report(418, "I'm a teapot", &len);
+    http_report(request, 418, "I'm a Teapot");
 
-    http_response_header(request, "content-type", "text/html");
-    http_response(request, 418, report, len);
-    kore_free(report);
+    /* Release session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    tree_free(session->session);
+    kore_free(request->hdlr_extra);
+    request->hdlr_extra = NULL;
+
     return_ok();
 }
 

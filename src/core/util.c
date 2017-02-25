@@ -190,45 +190,28 @@ http_auth_principal(struct http_request *request)
     return data->auth.principal;
 }
 
-char *
-http_report(int code, char *title, size_t *length)
+void
+http_report(struct http_request *request, int code, char *msg)
 {
-    struct kore_buf     *buffer;
-    char                strcode[4];
-    char                *strtime;
+    if (!request->hdlr_extra)
+        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
 
-    static const char *default_report =
-        "<html>"
-        "<head>"
-        "<title>Ayahesa Report</title>"
-        "<style>"
-        "table{font-family:arial,sans-serif;border-collapse:collapse;width:100%}"
-        "th{background-color:#ed143d;color:#fff}"
-        "td,th{border:1px solid #cccccc;text-align:left;padding:8px}"
-        "tr:nth-child(even){background-color:#f1f1f1}"
-        "</style>"
-        "</head>"
-        "<body>"
-        "<h1>$title$</h1>"
-        "<table>"
-        "<tr><th colspan=\"2\">Ayahesa report details</th></tr>"
-        "<tr><td>Code</td><td>$code$</td></tr>"
-        "<tr><td>Message</td><td>$title$</td></tr>"
-        "<tr><td>Occurrence</td><td>$time$</td></tr>"
-        "<tr><td>Framework version</td><td>" VERSION "</td></tr>"
-        "</table>"
-        "</body>"
-        "</html>";
+    /* Setup session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    session->session = (app_t *)kore_malloc(sizeof(app_t));
+    session->session->type = T_NULL;
+    session->session->flags = 0;
+    session->session->key = NULL;
+    tree_new_root(session->session);
 
-    snprintf(strcode, 4, "%d", code);
-    strtime = kore_time_to_date(time(NULL));
+    /* Push view variables */
+    tree_put_str(session->session, "background-clr", "#ed143d");
+    tree_put_str(session->session, "title", msg);
+    tree_put_str(session->session, "code", aya_itoa(code));
+    tree_put_str(session->session, "msg", msg);
 
-    buffer = kore_buf_alloc(strlen(default_report));
-    kore_buf_append(buffer, default_report, strlen(default_report));
-    kore_buf_replace_string(buffer, "$title$", title, strlen(title));
-    kore_buf_replace_string(buffer, "$code$", strcode, 3);
-    kore_buf_replace_string(buffer, "$time$", strtime, strlen(strtime));
-    return (char *)kore_buf_release(buffer, length);
+    /* Parse view */
+    http_view(request, code, "report");
 }
 
 int

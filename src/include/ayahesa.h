@@ -25,7 +25,7 @@
 
 #include "assets.h"
 
-#define VERSION "Ayahesa/0.6.2"
+#define VERSION "Ayahesa/0.6.3"
 #define CONFIG  "conf/framework.ini"
 
 #ifdef DEBUG
@@ -104,7 +104,7 @@ const char *    http_get_cookie(struct http_request *, const char *);
 int             http_basic_auth(struct http_request *, const char *);
 char *          http_remote_addr(struct http_request *);
 char *          http_auth_principal(struct http_request *);
-char *          http_report(int code, char *title, size_t *length);
+void            http_report(struct http_request *, int, char *);
 
 /*
  * Events
