@@ -117,7 +117,7 @@ get_vvar(char *var)
 static char *
 parser(struct kore_buf *buffer, char *token, size_t tokensz, size_t *argumentsz, char **posx_start, size_t *posx_length)
 {
-    char *include = kore_mem_find(buffer->data, buffer->length, token, tokensz);
+    char *include = kore_mem_find(buffer->data, buffer->offset, token, tokensz);
     if (!include)
         return NULL;
 
@@ -159,7 +159,7 @@ process_template(struct kore_buf **buffer)
 
     /* Block beginning and end */
     char *begin = argument + argumentsz + 1;
-    char *end = kore_mem_find((*buffer)->data, (*buffer)->length, TOk_ENDTEMPLATE, sizeof(TOk_ENDTEMPLATE) - 1);
+    char *end = kore_mem_find((*buffer)->data, (*buffer)->offset, TOk_ENDTEMPLATE, sizeof(TOk_ENDTEMPLATE) - 1);
     if (!end)
         return;
 
@@ -179,17 +179,20 @@ process_template(struct kore_buf **buffer)
 static void
 process_comment(struct kore_buf *buffer)
 {
-    /* Comment block beginning and end */
-    char *begin = kore_mem_find(buffer->data, buffer->length, TOk_COMMENT_OPEN, sizeof(TOk_COMMENT_OPEN) - 1);
-    if (!begin)
-        return;
+    /* Keep processing comments */
+    for (;;) {
+        /* Comment block beginning and end */
+        char *begin = kore_mem_find(buffer->data, buffer->offset, TOk_COMMENT_OPEN, sizeof(TOk_COMMENT_OPEN) - 1);
+        if (!begin)
+            return;
 
-    char *end = kore_mem_find(buffer->data, buffer->length, TOk_COMMENT_CLOSE, sizeof(TOk_COMMENT_CLOSE) - 1);
-    if (!end)
-        return;
+        char *end = kore_mem_find(buffer->data, buffer->offset, TOk_COMMENT_CLOSE, sizeof(TOk_COMMENT_CLOSE) - 1);
+        if (!end)
+            return;
 
-    /* Replace substring */
-    aya_buf_replace_string(buffer, begin, (end - begin) + sizeof(TOk_COMMENT_CLOSE) - 1, NULL, 0);
+        /* Replace substring */
+        aya_buf_replace_string(buffer, begin, (end - begin) + sizeof(TOk_COMMENT_CLOSE) - 1, NULL, 0);
+    }
 }
 
 static void
@@ -268,7 +271,7 @@ process_statement(struct kore_buf *buffer)
         argument = trim(argument);
 
         /* Find ENDIF token */
-        char *end = kore_mem_find(argument, buffer->length - pos_length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
+        char *end = kore_mem_find(argument, buffer->offset - pos_length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
         if (!end)
             return;
 
@@ -297,12 +300,12 @@ process_statement(struct kore_buf *buffer)
 
         if (middle) {
             /* Find ELSE token in new buffer */
-            middle = kore_mem_find(buffer->data, buffer->length, TOk_ELSE, sizeof(TOk_ELSE) - 1);
+            middle = kore_mem_find(buffer->data, buffer->offset, TOk_ELSE, sizeof(TOk_ELSE) - 1);
             if (!middle)
                 return;
 
             /* Find ENDIF token in new buffer */
-            end = kore_mem_find(buffer->data, buffer->length, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
+            end = kore_mem_find(buffer->data, buffer->offset, TOk_ENDIF, sizeof(TOk_ENDIF) - 1);
             if (!end)
                 return;
 
@@ -378,7 +381,7 @@ http_view(struct http_request *request, int code, const char *view)
     kore_buf_append(buffer, baseview, baseviewsz);
 
     /* Check for macros */
-    char *escape = kore_mem_find(buffer->data, buffer->length, "@", 1);
+    char *escape = kore_mem_find(buffer->data, buffer->offset, "@", 1);
     if (escape) {
         /* Parse view in order */
         //TODO: check for cache
