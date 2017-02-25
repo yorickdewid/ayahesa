@@ -26,8 +26,8 @@ void application_postproc(struct connection *c);
 void database_init(void);
 
 struct {
-	time_t boot;
-	unsigned int req_count;
+    time_t boot;
+    unsigned int req_count;
     unsigned int conn_active;
 } internal_counter;
 

@@ -13,18 +13,18 @@
 #include <time.h>
 
 /* Application core operations */
-extern void 		application_create(app_t **);
-extern void 		application_config(app_t *, const char *);
-extern void			application_bootstrap(app_t *app);
-extern void 		application_release(app_t *);
-extern void 		application_prelude(struct connection *);
-extern void 		application_postproc(struct connection *c);
+extern void         application_create(app_t **);
+extern void         application_config(app_t *, const char *);
+extern void	        application_bootstrap(app_t *app);
+extern void         application_release(app_t *);
+extern void         application_prelude(struct connection *);
+extern void         application_postproc(struct connection *c);
 
-int					aya_init(int);
-int					aya_connect(struct connection *);
-void				aya_disconnect(struct connection *);
+int             aya_init(int);
+int             aya_connect(struct connection *);
+void            aya_disconnect(struct connection *);
 
-int					notfound(struct http_request *req);
+int             notfound(struct http_request *req);
 
 #if defined(STATUSPAGE)
 int		aya_status(struct http_request *);
@@ -32,9 +32,9 @@ int		aya_status(struct http_request *);
 
 #if defined(OPT_ROUTES)
 int     aya_readme(struct http_request *);
-int		aya_shutdown_parent(struct http_request *);
-int		aya_fox(struct http_request *);
-int		aya_teapot(struct http_request *);
+int     aya_shutdown_parent(struct http_request *);
+int     aya_fox(struct http_request *);
+int     aya_teapot(struct http_request *);
 #endif // OPT_ROUTES
 
 app_t *root_app = NULL;
@@ -142,12 +142,7 @@ aya_shutdown_parent(struct http_request *request)
 int
 aya_fox(struct http_request *request)
 {
-    size_t len;
-    char *report = http_report(419, "I'm a fox", &len);
-
-    http_response_header(request, "content-type", "text/html");
-    http_response(request, 419, report, len);
-    kore_free(report);
+    http_view(request, 419, "report");
     return_ok();
 }
 

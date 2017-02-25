@@ -343,6 +343,7 @@ process_vars(struct http_request *request, struct kore_buf *buffer)
     aya_strlcpy(methodname, method, 8);
 
     kore_buf_replace_string(buffer, "@year", year, 4);
+    kore_buf_replace_string(buffer, "@framework", VERSION, strlen(VERSION));
     kore_buf_replace_string(buffer, "@instance", instance, strlen(instance));
     kore_buf_replace_string(buffer, "@date", date, strlen(date));
     kore_buf_replace_string(buffer, "@name", appname, strlen(appname));

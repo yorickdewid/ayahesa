@@ -44,11 +44,6 @@ view_method(status, get_active_conn)
     return aya_itoa(app_active_conncount());
 }
 
-view_method(status, get_framework_version)
-{
-    return VERSION;
-}
-
 view_method(status, get_kore_version)
 {
     static char kversion[32];
