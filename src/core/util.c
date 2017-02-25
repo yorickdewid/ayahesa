@@ -238,3 +238,54 @@ jrpc_write_string(struct jsonrpc_request *req, void *ctx)
 
     return yajl_gen_string(req->gen, str, strlen((const char *)str));
 }
+
+void
+aya_buf_replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,void *dst, size_t len)
+{
+    char        *pos_end, *tmp;
+    size_t      pre_len, post_len, new_len;
+
+    new_len = b->offset + len;
+    pos_end = pos_start + pos_length;
+    pre_len = pos_start - (char *)b->data;
+    post_len = ((char *)(b->data + b->offset) - pos_end);
+
+    tmp = kore_malloc(new_len);
+    memcpy(tmp, b->data, pre_len);
+    if (dst != NULL)
+        memcpy((tmp + pre_len), dst, len);
+    memcpy((tmp + pre_len + len), pos_end, post_len);
+
+    kore_free(b->data);
+    b->data = (u_int8_t *)tmp;
+    b->offset = pre_len + len + post_len;
+    b->length = new_len;
+}
+
+void
+aya_buf_replace_first_string(struct kore_buf *b, char *src, void *dst, size_t len)
+{
+    char        *pos_start, *pos_end, *tmp;
+    size_t      pre_len, post_len, new_len, pos_length;
+
+    pos_length = strlen(src);
+    pos_start = kore_mem_find(b->data, b->offset, src, pos_length);
+    if (pos_start == NULL)
+        return;
+
+    new_len = b->offset + len;
+    pos_end = pos_start + pos_length;
+    pre_len = pos_start - (char *)b->data;
+    post_len = ((char *)(b->data + b->offset) - pos_end);
+
+    tmp = kore_malloc(new_len);
+    memcpy(tmp, b->data, pre_len);
+    if (dst != NULL)
+        memcpy((tmp + pre_len), dst, len);
+    memcpy((tmp + pre_len + len), pos_end, post_len);
+
+    kore_free(b->data);
+    b->data = (u_int8_t *)tmp;
+    b->offset = pre_len + len + post_len;
+    b->length = new_len;
+}

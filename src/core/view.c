@@ -23,29 +23,6 @@
 #define TOk_ENDIF          "@endif"
 #define TOk_CLOSE          ')'
 
-static void
-replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,void *dst, size_t len)
-{
-    char        *pos_end, *tmp;
-    size_t      pre_len, post_len, new_len;
-
-    new_len = b->offset + len;
-    pos_end = pos_start + pos_length;
-    pre_len = pos_start - (char *)b->data;
-    post_len = ((char *)(b->data + b->offset) - pos_end);
-
-    tmp = kore_malloc(new_len);
-    memcpy(tmp, b->data, pre_len);
-    if (dst != NULL)
-        memcpy((tmp + pre_len), dst, len);
-    memcpy((tmp + pre_len + len), pos_end, post_len);
-
-    kore_free(b->data);
-    b->data = (u_int8_t *)tmp;
-    b->offset = pre_len + len + post_len;
-    b->length = new_len;
-}
-
 static char **
 split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
 {
@@ -192,7 +169,7 @@ process_template(struct kore_buf **buffer)
     kore_buf_append(template_buffer, asset, assetsz);
 
     /* Replace yield and swap buffers */
-    kore_buf_replace_string(template_buffer, "@yield", begin, strlen(begin));
+    aya_buf_replace_first_string(template_buffer, "@yield", begin, strlen(begin));
     kore_buf_cleanup(*buffer);
     *buffer = template_buffer;
 }
@@ -219,7 +196,7 @@ process_include(struct kore_buf *buffer)
             return;
 
         /* Replace substring */
-        replace_string(buffer, pos_start, pos_length, asset, strlen(asset));
+        aya_buf_replace_string(buffer, pos_start, pos_length, asset, strlen(asset));
     }
 }
 
@@ -249,7 +226,7 @@ process_function(struct kore_buf *buffer)
         kore_free(argv);
 
         /* Replace substring */
-        replace_string(buffer, pos_start, pos_length, str, strlen(str));
+        aya_buf_replace_string(buffer, pos_start, pos_length, str, strlen(str));
     }
 }
 
@@ -298,7 +275,7 @@ process_statement(struct kore_buf *buffer)
         }
 
         /* Replace substring */
-        replace_string(buffer, pos_start, replace_len, NULL, 0);
+        aya_buf_replace_string(buffer, pos_start, replace_len, NULL, 0);
 
         if (middle) {
             /* Find ELSE token in new buffer */
@@ -311,10 +288,11 @@ process_statement(struct kore_buf *buffer)
             if (!end)
                 return;
 
-            replace_string(buffer, middle, end - middle, NULL, 0);
+            aya_buf_replace_string(buffer, middle, end - middle, NULL, 0);
         }
         
-        kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);//TODO: this removes all
+        // kore_buf_replace_string(buffer, TOk_ENDIF, NULL, 0);//TODO: this removes all
+        aya_buf_replace_first_string(buffer, TOk_ENDIF, NULL, 0);
     }
 }
 
