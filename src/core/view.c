@@ -16,6 +16,7 @@
 
 #define TOk_INCLUDE        "@include("
 #define TOk_FUNCTION       "@function("
+#define TOk_USER_VAR       "@var("
 #define TOk_TEMPLATE       "@template("
 #define TOk_ENDTEMPLATE    "@endtemplate"
 #define TOk_IF             "@if("
@@ -318,7 +319,44 @@ process_statement(struct kore_buf *buffer)
 
 /* Easy substitution */
 static void
-process_vars(struct http_request *request, struct kore_buf *buffer)
+process_user_vars(struct http_request *request, struct kore_buf *buffer)
+{
+    char            *argument;
+    char            *pos_start;
+    size_t          argumentsz;
+    size_t          pos_length;
+
+    /* Must have request data */
+    if (!request->hdlr_extra)
+        return;
+
+    /* Must have session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    if (!session->session)
+        return;
+
+    for (;;) {
+        argumentsz = 0;
+        argument = parser(buffer, TOk_USER_VAR, sizeof(TOk_USER_VAR) - 1, &argumentsz, &pos_start, &pos_length);
+        if (!argument || !argumentsz)
+            return;
+
+        argument[argumentsz] = '\0';
+        argument = trim(argument);
+
+        char *value = NULL; size_t valuesz = 0;
+        tree_get_str(session->session, argument, &value);
+        if (value)
+            valuesz = strlen(value);
+
+        /* Replace substring */
+        aya_buf_replace_string(buffer, pos_start, pos_length, value, valuesz);
+    }
+}
+
+/* Easy substitution */
+static void
+process_predef_vars(struct http_request *request, struct kore_buf *buffer)
 {
     char domainname[128];
     char methodname[8];
@@ -392,7 +430,8 @@ http_view(struct http_request *request, int code, const char *view)
         //TODO: save current buffer in cache
         process_function(buffer);
         process_statement(buffer);
-        process_vars(request, buffer);
+        process_user_vars(request, buffer);
+        process_predef_vars(request, buffer);
     }
 
     /* Convert and respond */

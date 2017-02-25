@@ -65,12 +65,33 @@ view_method(status, get_kore_version)
  */
 controller(get_status)
 {
+    if (!request->hdlr_extra)
+        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+
     if (http_auth_principal(request))
         status_has_auth_user = 1;
+
+    /* Setup session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    session->session = (app_t *)kore_malloc(sizeof(app_t));
+    session->session->type = T_NULL;
+    session->session->flags = 0;
+    session->session->key = NULL;
+    tree_new_root(session->session);
+
+    /* Push view variables */
+    tree_put_str(session->session, "background-clr", "#9370db");
+    tree_put_str(session->session, "title", "Framework Status Page");
 
     http_response_header(request, "cache-control", "no-cache,no-store,must-revalidate");
     http_response_header(request, "pragma", "no-cache");
     http_response_header(request, "expires", "0");
     http_view(request, 200, "status");
+
+    /* Release session tree */
+    tree_free(session->session);
+    kore_free(request->hdlr_extra);
+    request->hdlr_extra = NULL;
+
     return_ok();
 }

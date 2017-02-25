@@ -311,7 +311,7 @@ tree_get_ptr(struct app_tree *tree, const char *key, void **value)
 }
 
 
-#ifdef DEBUG
+// #ifdef DEBUG
 
 void
 tree_dump(struct app_tree *node)
@@ -359,4 +359,4 @@ tree_dump(struct app_tree *node)
     }
 }
 
-#endif
+// #endif

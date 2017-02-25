@@ -10,7 +10,6 @@
 
 #include "../include/ayahesa.h"
 #include "util.h"
-#include "tree.h"
 #include "ini.h"
 
 #include <assert.h>

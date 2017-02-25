@@ -12,19 +12,18 @@
         table {
             font-family: arial,sans-serif;
             border-collapse: collapse;
-            width: 100%
+            width: 100%;
         }
 
-        th { 
-            background-color:#9370db;
-            /*background-color:#ed143d;*/
-            color:#fff
+        th {
+            background-color:@var(background-clr);
+            color:#fff;
         }
 
         td, th{
             border:1px solid #cccccc;
             text-align:left;
-            padding:8px
+            padding:8px;
         }
 
         tr:nth-child(even){
@@ -33,7 +32,7 @@
         </style>
     </head>
     <body>
-        <h1>@var(header)</h1>
+        <h1>@var(title)</h1>
 
         @/* Yield for template contents */@
         @yield

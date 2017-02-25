@@ -15,6 +15,37 @@
 #define TREE_CACHE  1
 
 /*
+ * Application internal structure
+ *
+ * type:    Datatype
+ * flags:   Additional tree options
+ * key:     Key-value identifier
+ * value:   Data object
+ * child:   Child trees
+ */
+struct app_tree {
+    enum {
+        T_NULL = 0,
+        T_INT,
+        T_FLOAT,
+        T_STRING,
+        T_POINTER,
+    } type;
+    char flags;
+    char *key;
+    union {
+        int i;
+        float f;
+        char *str;
+        void *ptr;
+    } value;
+    struct {
+        unsigned int alloc_cnt;
+        struct app_tree **ptr;
+    } child;
+};
+
+/*
  * Config operations
  */
 

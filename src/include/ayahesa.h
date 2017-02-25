@@ -13,6 +13,7 @@
 
 #include "core/compat.h"
 #include "core/defs.h"
+#include "core/tree.h"
 
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_tree.h>
@@ -47,42 +48,12 @@ typedef enum {
     EVENT_UPLOAD_SUCCESS,
 } event_type_t;
 
-/*
- * Application internal structure
- *
- * type:    Datatype
- * flags:   Additional tree options
- * key:     Key-value identifier
- * value:   Data object
- * child:   Child trees
- */
-struct app_tree {
-    enum {
-        T_NULL = 0,
-        T_INT,
-        T_FLOAT,
-        T_STRING,
-        T_POINTER,
-    } type;
-    char flags;
-    char *key;
-    union {
-        int i;
-        float f;
-        char *str;
-        void *ptr;
-    } value;
-    struct {
-        unsigned int alloc_cnt;
-        struct app_tree **ptr;
-    } child;
-};
-
 struct request_data {
     struct {
         unsigned int object_id;
         char *principal;
     } auth;
+    struct app_tree *session;
 };
 
 struct jwt {

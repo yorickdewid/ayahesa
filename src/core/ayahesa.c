@@ -27,7 +27,7 @@ void            aya_disconnect(struct connection *);
 int             notfound(struct http_request *req);
 
 #if defined(STATUSPAGE)
-int		aya_status(struct http_request *);
+int     aya_status(struct http_request *);
 #endif // STATUSPAGE
 
 #if defined(OPT_ROUTES)
@@ -142,7 +142,31 @@ aya_shutdown_parent(struct http_request *request)
 int
 aya_fox(struct http_request *request)
 {
+    if (!request->hdlr_extra)
+        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+
+    /* Setup session tree */
+    struct request_data *session = (struct request_data *)request->hdlr_extra;
+    session->session = (app_t *)kore_malloc(sizeof(app_t));
+    session->session->type = T_NULL;
+    session->session->flags = 0;
+    session->session->key = NULL;
+    tree_new_root(session->session);
+
+    /* Push view variables */
+    tree_put_str(session->session, "background-clr", "#ed143d");
+    tree_put_str(session->session, "title", "I'm a Fox");
+    tree_put_str(session->session, "code", "419");
+    tree_put_str(session->session, "msg", "I'm a Fox");
+
+    /* Parse view */
     http_view(request, 419, "report");
+
+    /* Release session tree */
+    tree_free(session->session);
+    kore_free(request->hdlr_extra);
+    request->hdlr_extra = NULL;
+
     return_ok();
 }
 

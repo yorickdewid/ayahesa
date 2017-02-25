@@ -39,7 +39,7 @@ middleware(auth_basic)
     }
 
     /* Find user part */
-    char *principal = kore_strdup(STATUSPAGE_AUTH);
+    char *principal = kore_strdup(STATUSPAGE_AUTH);//TODO: needs a kore_free
     char *split = strchr(principal, ':');
     split[0] = '\0';
 
