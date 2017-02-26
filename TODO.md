@@ -1,8 +1,10 @@
 # TODO
 
+- alloc req data once & fre once
+
+
 This release:
 * Free `struct request_data`
-* HTML Templates
 * Transparent file encryption
 * PG prepared statements
 

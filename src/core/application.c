@@ -418,6 +418,18 @@ app_storage(void)
 }
 
 /*
+ * Application basic authentication username and password
+ */
+char *
+app_basic_auth(void)
+{
+    char *bais_auth = NULL;
+    config_get_str(root_app, "auth", &bais_auth);
+
+    return bais_auth;
+}
+
+/*
  * Application domainname
  */
 const char *

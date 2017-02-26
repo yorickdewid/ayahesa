@@ -13,9 +13,20 @@
 
 #include <string.h>
 
+/*
+ * Dropin standard library functions
+ */
+
 #define trim(s) \
     lskip(rstrip(s))
 
+#define aya_malloc(s) \
+    kore_calloc(s))
+
+#define aya_free(p) \
+    kore_free(p)
+
+void *aya_calloc(size_t, size_t);
 char *aya_strncpy0(char *, const char *, size_t);
 size_t aya_strlcpy(char *, const char *, const size_t);
 size_t aya_strlcat(char *, const char *, const size_t);

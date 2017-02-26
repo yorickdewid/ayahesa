@@ -23,28 +23,38 @@
 
 middleware(auth_basic)
 {
-    if (!request->hdlr_extra) {
-        request->hdlr_extra = kore_malloc(sizeof(struct request_data));
-        memset(request->hdlr_extra, '\0', sizeof(struct request_data));
-    }
+    if (!request->hdlr_extra)
+        request->hdlr_extra = aya_calloc(1, sizeof(struct request_data));
 
-    /* Protect route with basic authentication */
-    if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
-        http_response_header(request, "www-authenticate", "Basic realm=\"Baisc auth\"");
-        http_response_header(request, "content-type", "text/html");
-        http_report(request, 401, "Not Found");
+    char *basic_auth_settings = app_basic_auth();
+    if (!basic_auth_settings) {
+        http_report(request, 404, "Not Found");
 
         /* Release session tree */
         struct request_data *session = (struct request_data *)request->hdlr_extra;
         tree_free(session->session);
-        kore_free(request->hdlr_extra);
+        aya_free(request->hdlr_extra);
+        request->hdlr_extra = NULL;
+
+        return_error();
+    }
+
+    /* Protect route with basic authentication */
+    if (!http_basic_auth(request, basic_auth_settings)) {
+        http_response_header(request, "www-authenticate", "Basic realm=\"Baisc auth\"");
+        http_report(request, 401, "Unauthorized");
+
+        /* Release session tree */
+        struct request_data *session = (struct request_data *)request->hdlr_extra;
+        tree_free(session->session);
+        aya_free(request->hdlr_extra);
         request->hdlr_extra = NULL;
 
         return_error();
     }
 
     /* Find user part */
-    char *principal = kore_strdup(STATUSPAGE_AUTH);//TODO: needs a kore_free
+    char *principal = kore_strdup(basic_auth_settings);//TODO: needs a aya_free
     char *split = strchr(principal, ':');
     split[0] = '\0';
 
@@ -62,7 +72,7 @@ middleware(auth_jwt)
 
     memset(&jwt, '\0', sizeof(struct jwt));
     if (!request->hdlr_extra)
-        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+        request->hdlr_extra = aya_calloc(1, sizeof(struct request_data));
 
     char *method = strtok(data, " ");
     if (!method)
@@ -81,17 +91,17 @@ middleware(auth_jwt)
             auth->auth.principal = kore_strdup(jwt.sub);
 
             /* Cleanup */
-            kore_free(jwt.iss);
-            kore_free(jwt.sub);
-            kore_free(jwt.aud);
+            aya_free(jwt.iss);
+            aya_free(jwt.sub);
+            aya_free(jwt.aud);
 
             return_ok();
         }
 
         /* Cleanup */
-        kore_free(jwt.iss);
-        kore_free(jwt.sub);
-        kore_free(jwt.aud);
+        aya_free(jwt.iss);
+        aya_free(jwt.sub);
+        aya_free(jwt.aud);
     }
 
     return_error();

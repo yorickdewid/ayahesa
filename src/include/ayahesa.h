@@ -36,8 +36,6 @@
 # define OPT_ROUTES
 #endif
 
-#define STATUSPAGE_AUTH "eve:ABC@123"
-
 #define T_FLAG_READONLY 0x1
 
 /* Event types */
@@ -96,6 +94,7 @@ int             app_session_lifetime(void);
 const char *    app_domainname(void);
 char *          app_key(void);
 char *          app_storage(void);
+char *          app_basic_auth(void);
 
 /*
  * HTTP helpers

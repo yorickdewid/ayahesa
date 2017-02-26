@@ -14,11 +14,24 @@
 
 #include "compat.h"
 
+#include <kore/kore.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-/* Version of strncpy that ensures dest (size bytes) is null-terminated. */
+void *aya_calloc(size_t n, size_t sz) {
+    void *ptr = kore_calloc(n, sz);
+    if (!ptr)
+        return NULL;
+    memset(ptr, '\0', (n * sz));
+    return ptr;
+}
+
+/* 
+ * Version of strncpy that ensures dest (size bytes)
+ * is null-terminated.
+ */
 char *
 aya_strncpy0(char *dst, const char *src, size_t len)
 {
