@@ -361,12 +361,18 @@ process_predef_vars(struct http_request *request, struct kore_buf *buffer)
     char domainname[128];
     char methodname[8];
 
+    size_t auth_usersz = 0; 
+    char *auth_user = NULL;
     char *principal = http_auth_principal(request);
+    if (principal) {
+        auth_user = principal;
+        auth_usersz = strlen(auth_user);
+    }
+
     char *year = aya_itoa(date_year());
     char *instance = app_instance();
     char *date = kore_time_to_date(time(NULL));
     char *appname = app_name();
-    char *auth_user = principal ? principal : "-";
     char *uptime = app_uptime();
     char *env = app_environment();
     char *uri = request->path;
@@ -385,7 +391,7 @@ process_predef_vars(struct http_request *request, struct kore_buf *buffer)
     kore_buf_replace_string(buffer, "@instance", instance, strlen(instance));
     kore_buf_replace_string(buffer, "@date", date, strlen(date));
     kore_buf_replace_string(buffer, "@name", appname, strlen(appname));
-    kore_buf_replace_string(buffer, "@user", auth_user, strlen(auth_user));
+    kore_buf_replace_string(buffer, "@user", auth_user, auth_usersz);
     kore_buf_replace_string(buffer, "@uptime", uptime, strlen(uptime));
     kore_buf_replace_string(buffer, "@env", env, strlen(env));
     kore_buf_replace_string(buffer, "@domain", domainname, strlen(domainname));
@@ -406,12 +412,10 @@ http_view(struct http_request *request, int code, const char *view)
     /* Retrieve base view */
     char *baseview = include_asset(view);
     if (!baseview) {
-        size_t len;
-        char *report = http_report(500, "View Not Found", &len);
+        char *report = "View Not Found";
 
-        http_response_header(request, "content-type", "text/html");
-        http_response(request, 500, report, len);
-        kore_free(report);
+        http_response_header(request, "content-type", "text/plain");
+        http_response(request, 500, report, strlen(report));
         return_ok();
     }
 

@@ -23,18 +23,23 @@
 
 middleware(auth_basic)
 {
-    if (!request->hdlr_extra)
-        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+    if (!request->hdlr_extra) {
+        request->hdlr_extra = kore_malloc(sizeof(struct request_data));
+        memset(request->hdlr_extra, '\0', sizeof(struct request_data));
+    }
 
     /* Protect route with basic authentication */
     if (!http_basic_auth(request, STATUSPAGE_AUTH)) {
-        size_t len;
-        char *report = http_report(401, "Authorization required", &len);
-
         http_response_header(request, "www-authenticate", "Basic realm=\"Baisc auth\"");
         http_response_header(request, "content-type", "text/html");
-        http_response(request, 401, report, len);
-        kore_free(report);
+        http_report(request, 401, "Not Found");
+
+        /* Release session tree */
+        struct request_data *session = (struct request_data *)request->hdlr_extra;
+        tree_free(session->session);
+        kore_free(request->hdlr_extra);
+        request->hdlr_extra = NULL;
+
         return_error();
     }
 
