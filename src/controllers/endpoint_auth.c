@@ -12,7 +12,7 @@
 
 #define TEST_AUD "C1M0L0P2"
 
-extern int model_principal_auth(const char *, const char *);
+extern int model_principal_auth(const char *, const char *);//TODO
 
 /* Validate user claim, return object id on success */
 static int
@@ -89,7 +89,7 @@ jrpc_method(jwt_authenticate)
 
     char *token = jwt_token_new(&jwt);
     int ret = jsonrpc_result(request, jrpc_write_jwt, token);
-    kore_free(token);
+    aya_free(token);
 
     return ret;
 }

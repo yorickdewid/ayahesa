@@ -21,7 +21,7 @@ tree_new_root(struct app_tree *node)
     assert(node != NULL);
 
     node->child.alloc_cnt = 10;
-    node->child.ptr = (struct app_tree **)kore_malloc(node->child.alloc_cnt * sizeof(struct app_tree *));
+    node->child.ptr = (struct app_tree **)aya_malloc(node->child.alloc_cnt * sizeof(struct app_tree *));
 
     /* Nullify new pointers */
     for (i=0; i<node->child.alloc_cnt; ++i)
@@ -75,13 +75,13 @@ tree_free(struct app_tree *node)
         return;
 
     if (node->key != NULL) {
-        kore_free((void *)node->key);
+        aya_free((void *)node->key);
         node->key = NULL;
     }
 
     switch (node->type) {
         case T_STRING:
-            kore_free((void *)node->value.str);
+            aya_free((void *)node->value.str);
             node->value.str = NULL;
             break;
         case T_POINTER: /* Assume the pointer is freed */
@@ -142,7 +142,7 @@ tree_remove(struct app_tree *tree, const char *key)
         if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
             tree_free(tree->child.ptr[i]);
 
-            kore_free((void *)tree->child.ptr[i]);
+            aya_free((void *)tree->child.ptr[i]);
             tree->child.ptr[i] = NULL;
         }
     }
@@ -164,7 +164,7 @@ tree_new_item(struct app_tree *tree)
     if (idx == EISFULL)
         idx = tree_expand(tree);
 
-    tree->child.ptr[idx] = (struct app_tree *)kore_malloc(sizeof(struct app_tree));
+    tree->child.ptr[idx] = (struct app_tree *)aya_malloc(sizeof(struct app_tree));
     tree->child.ptr[idx]->key = NULL;
     tree->child.ptr[idx]->type = T_NULL;
     return tree->child.ptr[idx];

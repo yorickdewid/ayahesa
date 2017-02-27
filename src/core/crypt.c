@@ -32,7 +32,7 @@ crypt_password_hash(const char *secret)
 
     /* Calculate length */
     encodedlen = argon2_encodedlen(T_COST, M_COST, P_COST, 16, 32, Argon2_i);
-    encoded = (char *)kore_malloc(encodedlen);
+    encoded = (char *)aya_malloc(encodedlen);
 
     /* Calculate hash */
     if (argon2i_hash_encoded(T_COST, M_COST, P_COST, secret, strlen(secret),

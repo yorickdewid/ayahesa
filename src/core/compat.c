@@ -24,6 +24,7 @@ void *aya_calloc(size_t n, size_t sz) {
     void *ptr = kore_calloc(n, sz);
     if (!ptr)
         return NULL;
+
     memset(ptr, '\0', (n * sz));
     return ptr;
 }

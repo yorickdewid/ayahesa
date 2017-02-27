@@ -67,14 +67,14 @@ write_header(AYAFILE *afp)
 AYAFILE *
 afopen(const char *path, const char *mode)
 {
-    AYAFILE *afp = kore_malloc(sizeof(AYAFILE));
+    AYAFILE *afp = aya_malloc(sizeof(AYAFILE));
     afp->key = NULL;
     afp->iv = NULL;
     afp->has_header = 0;
 
     afp->fp = fopen(path, mode);
     if (!afp->fp) {
-        kore_free(afp);
+        aya_free(afp);
         return NULL;
     }
 
@@ -133,7 +133,7 @@ afclose(AYAFILE *afp)
     int ret = 0;
 
     ret = fclose(afp->fp);
-    kore_free(afp);
+    aya_free(afp);
     return ret;
 }
 

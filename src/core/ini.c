@@ -54,7 +54,7 @@ ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
     int lineno = 0;
     int error = 0;
 
-    line = (char *)kore_malloc(INI_MAX_LINE);
+    line = (char *)aya_malloc(INI_MAX_LINE);
     if (!line) {
         return -2;
     }
@@ -121,7 +121,7 @@ ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
             break;
     }
 
-    kore_free(line);
+    aya_free(line);
 
     return error;
 }

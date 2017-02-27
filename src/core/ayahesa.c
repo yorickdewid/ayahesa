@@ -98,7 +98,7 @@ notfound(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
-    kore_free(request->hdlr_extra);
+    aya_free(request->hdlr_extra);
     request->hdlr_extra = NULL;
 
     return_ok();
@@ -118,13 +118,13 @@ aya_readme(struct http_request *request)
     size_t file_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    char *string = kore_malloc(file_size + 1);
+    char *string = aya_malloc(file_size + 1);
     fread(string, file_size, 1, fp);
     fclose(fp);
 
     http_response_header(request, "content-type", "text/plain");
     http_response(request, 200, string, file_size);
-    kore_free(string);
+    aya_free(string);
     return_ok();
 }
 
@@ -136,7 +136,7 @@ aya_shutdown_parent(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
-    kore_free(request->hdlr_extra);
+    aya_free(request->hdlr_extra);
     request->hdlr_extra = NULL;
 
     kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
@@ -152,7 +152,7 @@ aya_fox(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
-    kore_free(request->hdlr_extra);
+    aya_free(request->hdlr_extra);
     request->hdlr_extra = NULL;
 
     return_ok();
@@ -166,7 +166,7 @@ aya_teapot(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
-    kore_free(request->hdlr_extra);
+    aya_free(request->hdlr_extra);
     request->hdlr_extra = NULL;
 
     return_ok();

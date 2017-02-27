@@ -31,7 +31,7 @@ fetch_file(char *filename, size_t *file_size)
     /* Determine file size */
     *file_size = afsize(fp);
 
-    unsigned char *content = kore_calloc(1, *file_size);
+    unsigned char *content = aya_calloc(1, *file_size);
     afread(content, *file_size, 1, fp);
 
     afclose(fp);
@@ -118,7 +118,7 @@ get_resource(struct http_request *request, struct request_data *auth)
     http_response_header(request, "content-type", mime_type(ext));
     http_response(request, 200, string, file_size);
 
-    kore_free(string);
+    aya_free(string);
     return_ok();
 }
 

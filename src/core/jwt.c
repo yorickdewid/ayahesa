@@ -54,7 +54,7 @@ generate_payload(struct jwt *jwt, size_t *payload_encoded_length)
     yajl_gen_get_buf(tree, &payload, &payload_len);
     
     /* String encode */
-    unsigned char *payload_encoded = (unsigned char *)kore_calloc(((4 * payload_len) / 3 ) + 2, sizeof(unsigned char));
+    unsigned char *payload_encoded = (unsigned char *)aya_calloc(((4 * payload_len) / 3 ) + 2, sizeof(unsigned char));
     base64url_encode(payload, payload_len, payload_encoded, payload_encoded_length);
 
     yajl_gen_clear(tree);
@@ -78,7 +78,7 @@ sign_payload(char *key, size_t key_length, const char *data, size_t *signature_e
         (const unsigned char *)key, key_length);
 
     /* Signature encode */
-    unsigned char *signature_encoded = (unsigned char *)kore_calloc(((4 * signature_len) / 3 ) + 2, sizeof(unsigned char));
+    unsigned char *signature_encoded = (unsigned char *)aya_calloc(((4 * signature_len) / 3 ) + 2, sizeof(unsigned char));
     base64url_encode(signature, signature_len, signature_encoded, signature_encoded_length);
 
     return signature_encoded;
@@ -108,17 +108,17 @@ jwt_token_new(struct jwt *jwt)
      * Prepare signature input
      * Generate signature over data
      */
-    char *data = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1, sizeof(unsigned char));
+    char *data = (char *)aya_calloc(header_encoded_length + 1 + payload_encoded_length + 1, sizeof(unsigned char));
     sprintf(data, "%s.%s", header_encoded, payload_encoded);
     signature_encoded = sign_payload(rawkey, rawkey_len, data, &signature_encoded_length);
-    kore_free(data);
+    aya_free(data);
 
     /* Concat parts */
-    char *token = (char *)kore_calloc(header_encoded_length + 1 + payload_encoded_length + 1 + signature_encoded_length + 1, sizeof(unsigned char));
+    char *token = (char *)aya_calloc(header_encoded_length + 1 + payload_encoded_length + 1 + signature_encoded_length + 1, sizeof(unsigned char));
     sprintf(token, "%s.%s.%s", header_encoded, payload_encoded, signature_encoded);
 
-    kore_free(signature_encoded);
-    kore_free(payload_encoded);
+    aya_free(signature_encoded);
+    aya_free(payload_encoded);
 
     return token;
 }
@@ -136,15 +136,15 @@ check_signature(char *header, char *payload, char *hash)
     kore_base64_decode(app_key(), (u_int8_t **)&rawkey, &rawkey_len);
 
     /* Calculate hash over incomming token */
-    char *data = (char *)kore_calloc(strlen(header) + 1 + strlen(payload) + 1, sizeof(char));
+    char *data = (char *)aya_calloc(strlen(header) + 1 + strlen(payload) + 1, sizeof(char));
     sprintf(data, "%s.%s", header, payload);
     signature_encoded = sign_payload(rawkey, rawkey_len, data, &signature_encoded_length);
-    kore_free(data);
+    aya_free(data);
 
     /* Compare incomming hash against caculated hash */
     ret = strcmp((const char *)hash, (const char *)signature_encoded) ? 0 : 1;
 
-    kore_free(signature_encoded);
+    aya_free(signature_encoded);
     return ret;
 }
 
@@ -159,7 +159,7 @@ parse_payload(char *payload, struct jwt *jwt)
     const char *path_iat[] = {"iat", NULL};
     const char *path_exp[] = {"exp", NULL};
 
-    unsigned char *payload_decoded = (unsigned char *)kore_calloc(((3 * strlen(payload)) / 4 ) + 1, sizeof(unsigned char));
+    unsigned char *payload_decoded = (unsigned char *)aya_calloc(((3 * strlen(payload)) / 4 ) + 1, sizeof(unsigned char));
     base64url_decode((const unsigned char *)payload, strlen(payload), payload_decoded, &payload_decoded_length);
     payload_decoded[payload_decoded_length] = '\0';
 
@@ -179,7 +179,7 @@ parse_payload(char *payload, struct jwt *jwt)
     jwt->exp = YAJL_GET_INTEGER(obj_expire);
 
     yajl_tree_free(tree);
-    kore_free(payload_decoded);
+    aya_free(payload_decoded);
 }
 
 int

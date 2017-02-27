@@ -29,7 +29,7 @@
 static char **
 split_arguments(char *cmdline, size_t cmdlinesz, int *argc)
 {
-    char **argv = (char **)kore_calloc(16, sizeof(char *));
+    char **argv = (char **)aya_calloc(16, sizeof(char *));
     *argc = 0;
 
     /* Signle argument chec */
@@ -245,7 +245,7 @@ process_function(struct kore_buf *buffer)
 
         char *str = call_vfunc(argc, argv);
 
-        kore_free(argv);
+        aya_free(argv);
 
         /* Replace substring */
         aya_buf_replace_string(buffer, pos_start, pos_length, str, strlen(str));

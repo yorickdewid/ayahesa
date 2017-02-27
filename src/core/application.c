@@ -50,7 +50,7 @@ application_create(app_t **app)
     internal_counter.conn_active = 0;
 
     /* Setup application root tree */
-    app_t *root = (app_t *)kore_malloc(sizeof(app_t));
+    app_t *root = (app_t *)aya_malloc(sizeof(app_t));
     root->value.str = generate_instance_id();
     root->type = T_STRING;
     root->flags = 0;
@@ -58,14 +58,14 @@ application_create(app_t **app)
     tree_new_root(root);
 
     /* Config tree */
-    root->child.ptr[TREE_CONFIG] = (app_t *)kore_malloc(sizeof(app_t));
+    root->child.ptr[TREE_CONFIG] = (app_t *)aya_malloc(sizeof(app_t));
     root->child.ptr[TREE_CONFIG]->flags = T_FLAG_READONLY;
     root->child.ptr[TREE_CONFIG]->type = T_NULL;
     root->child.ptr[TREE_CONFIG]->key = NULL;
     tree_new_root(root->child.ptr[TREE_CONFIG]);
 
     /* Cache tree */
-    root->child.ptr[TREE_CACHE] = (app_t *)kore_malloc(sizeof(app_t));
+    root->child.ptr[TREE_CACHE] = (app_t *)aya_malloc(sizeof(app_t));
     root->child.ptr[TREE_CACHE]->flags = 0;
     root->child.ptr[TREE_CACHE]->type = T_NULL;
     root->child.ptr[TREE_CACHE]->key = NULL;
@@ -132,7 +132,7 @@ load_config_tree(void *user, const char *section, const char *name, const char *
 
     /* Set instance name */
     if (!strcmp(name, "instance")) {
-        kore_free(root_app->value.str);
+        aya_free(root_app->value.str);
         root_app->value.str = kore_strdup(value);
         kore_log(LOG_NOTICE, "application instance %s", root_app->value.str);
         return 1;
@@ -142,13 +142,13 @@ load_config_tree(void *user, const char *section, const char *name, const char *
     size_t szc = strlen(section);
     if (szc) {
         size_t keylen = szc + 1 + strlen(name) + 1;
-        char *key = (char *)kore_malloc(keylen);
+        char *key = (char *)aya_malloc(keylen);
         aya_strlcpy(key, section, keylen);
         aya_strlcat(key, ".", keylen);
         aya_strlcat(key, name, keylen);
 
         config_put_str(app, key, value);
-        kore_free(key);
+        aya_free(key);
         return 1;
     }
 
@@ -258,7 +258,7 @@ application_release(app_t *app)
     /* Traverse tree and free pointers */
     tree_free(app);
 
-    kore_free(app);
+    aya_free(app);
     app = NULL;
 }
 

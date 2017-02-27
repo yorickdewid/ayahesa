@@ -21,7 +21,7 @@
     lskip(rstrip(s))
 
 #define aya_malloc(s) \
-    kore_calloc(s))
+    kore_malloc(s)
 
 #define aya_free(p) \
     kore_free(p)

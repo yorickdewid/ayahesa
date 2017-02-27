@@ -25,7 +25,7 @@ generate_instance_id(void)
     static const char ar[] = "abcdefghijklmnopqrstuvwxyz";
     unsigned int rnd;
 
-    char *str = (char *)kore_malloc(10);
+    char *str = (char *)aya_malloc(10);
 
     str[0] = ar[rand() % strlen(ar)];
     str[1] = ar[rand() % strlen(ar)];
@@ -194,11 +194,11 @@ void
 http_report(struct http_request *request, int code, char *msg)
 {
     if (!request->hdlr_extra)
-        request->hdlr_extra = kore_calloc(1, sizeof(struct request_data));
+        request->hdlr_extra = aya_calloc(1, sizeof(struct request_data));
 
     /* Setup session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
-    session->session = (app_t *)kore_malloc(sizeof(app_t));
+    session->session = (app_t *)aya_malloc(sizeof(app_t));
     session->session->type = T_NULL;
     session->session->flags = 0;
     session->session->key = NULL;
@@ -233,13 +233,13 @@ aya_buf_replace_string(struct kore_buf *b, char *pos_start, size_t pos_length,vo
     pre_len = pos_start - (char *)b->data;
     post_len = ((char *)(b->data + b->offset) - pos_end);
 
-    tmp = kore_malloc(new_len);
+    tmp = aya_malloc(new_len);
     memcpy(tmp, b->data, pre_len);
     if (dst != NULL)
         memcpy((tmp + pre_len), dst, len);
     memcpy((tmp + pre_len + len), pos_end, post_len);
 
-    kore_free(b->data);
+    aya_free(b->data);
     b->data = (u_int8_t *)tmp;
     b->offset = pre_len + len + post_len;
     b->length = new_len;
@@ -261,13 +261,13 @@ aya_buf_replace_first_string(struct kore_buf *b, char *src, void *dst, size_t le
     pre_len = pos_start - (char *)b->data;
     post_len = ((char *)(b->data + b->offset) - pos_end);
 
-    tmp = kore_malloc(new_len);
+    tmp = aya_malloc(new_len);
     memcpy(tmp, b->data, pre_len);
     if (dst != NULL)
         memcpy((tmp + pre_len), dst, len);
     memcpy((tmp + pre_len + len), pos_end, post_len);
 
-    kore_free(b->data);
+    aya_free(b->data);
     b->data = (u_int8_t *)tmp;
     b->offset = pre_len + len + post_len;
     b->length = new_len;
