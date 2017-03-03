@@ -168,6 +168,8 @@ aya_teapot(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
+    aya_free(session->session);
+    session->session = NULL;
     aya_free(request->hdlr_extra);
     request->hdlr_extra = NULL;
 

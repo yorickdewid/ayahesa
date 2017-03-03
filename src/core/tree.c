@@ -16,16 +16,10 @@
 void
 tree_new_root(struct app_tree *node)
 {
-    unsigned int i;
-
     assert(node != NULL);
 
     node->child.alloc_cnt = 10;
-    node->child.ptr = (struct app_tree **)aya_malloc(node->child.alloc_cnt * sizeof(struct app_tree *));
-
-    /* Nullify new pointers */
-    for (i=0; i<node->child.alloc_cnt; ++i)
-        node->child.ptr[i] = NULL;
+    node->child.ptr = (struct app_tree **)aya_calloc(node->child.alloc_cnt, sizeof(struct app_tree *));
 }
 
 int
@@ -100,9 +94,14 @@ tree_free(struct app_tree *node)
 
     /* Traverse down */
     for (i=0; i<node->child.alloc_cnt; ++i) {
-        if (node->child.ptr[i] != NULL)
+        if (node->child.ptr[i] != NULL) {
             tree_free(node->child.ptr[i]);
+            aya_free(node->child.ptr[i]);
+            node->child.ptr[i] = NULL;
+        }
     }
+
+    node->child.ptr = NULL;
 }
 
 /*
@@ -164,7 +163,7 @@ tree_new_item(struct app_tree *tree)
     if (idx == EISFULL)
         idx = tree_expand(tree);
 
-    tree->child.ptr[idx] = (struct app_tree *)aya_malloc(sizeof(struct app_tree));
+    tree->child.ptr[idx] = (struct app_tree *)aya_calloc(1, sizeof(struct app_tree));
     tree->child.ptr[idx]->key = NULL;
     tree->child.ptr[idx]->type = T_NULL;
     return tree->child.ptr[idx];
@@ -316,7 +315,7 @@ tree_get_ptr(struct app_tree *tree, const char *key, void **value)
 void
 tree_dump(struct app_tree *node)
 {
-    unsigned int i; 
+    unsigned int i;
 
     /* Skip empty nodes */
     if (node == NULL)

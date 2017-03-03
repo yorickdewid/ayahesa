@@ -17,7 +17,8 @@
 
 void application_create(app_t **);
 void application_config(app_t *, const char *);
-void application_bootstrap(app_t *app);
+void application_env(app_t *);
+void application_bootstrap(app_t *);
 void application_release(app_t *);
 void application_prelude(struct connection *);
 void application_postproc(struct connection *c);
@@ -50,7 +51,7 @@ application_create(app_t **app)
     internal_counter.conn_active = 0;
 
     /* Setup application root tree */
-    app_t *root = (app_t *)aya_malloc(sizeof(app_t));
+    app_t *root = (app_t *)aya_calloc(1, sizeof(app_t));
     root->value.str = generate_instance_id();
     root->type = T_STRING;
     root->flags = 0;
@@ -58,14 +59,14 @@ application_create(app_t **app)
     tree_new_root(root);
 
     /* Config tree */
-    root->child.ptr[TREE_CONFIG] = (app_t *)aya_malloc(sizeof(app_t));
+    root->child.ptr[TREE_CONFIG] = (app_t *)aya_calloc(1, sizeof(app_t));
     root->child.ptr[TREE_CONFIG]->flags = T_FLAG_READONLY;
     root->child.ptr[TREE_CONFIG]->type = T_NULL;
     root->child.ptr[TREE_CONFIG]->key = NULL;
     tree_new_root(root->child.ptr[TREE_CONFIG]);
 
     /* Cache tree */
-    root->child.ptr[TREE_CACHE] = (app_t *)aya_malloc(sizeof(app_t));
+    root->child.ptr[TREE_CACHE] = (app_t *)aya_calloc(1, sizeof(app_t));
     root->child.ptr[TREE_CACHE]->flags = 0;
     root->child.ptr[TREE_CACHE]->type = T_NULL;
     root->child.ptr[TREE_CACHE]->key = NULL;
@@ -98,7 +99,7 @@ application_postproc(struct connection *c)
 /*
  * Parse INI file and load key,value into config tree
  */
-static int
+static int //TODO: handle empty section
 load_config_tree(void *user, const char *section, const char *name, const char *value, int lineno)
 {
     app_t *app = (app_t *)user;
@@ -209,6 +210,43 @@ application_config(app_t *app, const char *configfile)
     /* Open file for logging operations */
     snprintf(logfile, 255, "%s/ayahesa.log", app_storage());
     log_fp = fopen(logfile, "a+");
+}
+
+/*
+ * Fetch config from environment
+ */
+void
+application_env(app_t *app)
+{
+    int i;
+    extern char **environ;
+
+    /* Loop all environment variables */
+    char *env = *environ;
+    for (i = 1; env; ++i) {
+        if (!strncmp("AYA_", env, 4)) {
+            char *base = env + 4;
+            char *section = strchr(base, '_');
+            char *end = strchr(base, '=');
+            if (!end) {
+                env = *(environ + i);
+                continue;
+            }
+
+            end[0] = '\0';
+            
+            char *final_section = "";
+            if (section) {
+                section[0] = '\0';
+                final_section = strtolower(base);
+                base = section + 1;
+            }
+
+            char *final_name = strtolower(base);
+            load_config_tree((void *)app, final_section, final_name, end + 1, i);
+        }
+        env = *(environ + i);
+    }
 }
 
 /*

@@ -116,7 +116,7 @@ http_basic_auth(struct http_request *request, const char *auth)
     char        *header_auth = NULL;
 
     if (basic_auth_count >= 5) {
-        sleep(2);
+        sleep(3);
         basic_auth_count = 0;
     }
 
@@ -198,7 +198,7 @@ http_report(struct http_request *request, int code, char *msg)
 
     /* Setup session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
-    session->session = (app_t *)aya_malloc(sizeof(app_t));
+    session->session = (app_t *)aya_calloc(1, sizeof(app_t));
     session->session->type = T_NULL;
     session->session->flags = 0;
     session->session->key = NULL;
