@@ -297,7 +297,6 @@ application_release(app_t *app)
     tree_free(app);
 
     aya_free(app);
-    app = NULL;
 }
 
 //////////////////////////////////////////////////

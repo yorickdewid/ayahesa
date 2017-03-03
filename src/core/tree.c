@@ -69,14 +69,12 @@ tree_free(struct app_tree *node)
         return;
 
     if (node->key != NULL) {
-        aya_free((void *)node->key);
-        node->key = NULL;
+        aya_free(node->key);
     }
 
     switch (node->type) {
         case T_STRING:
-            aya_free((void *)node->value.str);
-            node->value.str = NULL;
+            aya_free(node->value.str);
             break;
         case T_POINTER: /* Assume the pointer is freed */
             node->value.ptr = NULL;
@@ -97,7 +95,6 @@ tree_free(struct app_tree *node)
         if (node->child.ptr[i] != NULL) {
             tree_free(node->child.ptr[i]);
             aya_free(node->child.ptr[i]);
-            node->child.ptr[i] = NULL;
         }
     }
 
@@ -141,8 +138,7 @@ tree_remove(struct app_tree *tree, const char *key)
         if (tree->child.ptr[i] != NULL && !strcmp(tree->child.ptr[i]->key, key)) {
             tree_free(tree->child.ptr[i]);
 
-            aya_free((void *)tree->child.ptr[i]);
-            tree->child.ptr[i] = NULL;
+            aya_free(tree->child.ptr[i]);
         }
     }
 }

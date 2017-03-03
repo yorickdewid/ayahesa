@@ -24,7 +24,8 @@
     kore_malloc(s)
 
 #define aya_free(p) \
-    kore_free(p)
+    kore_free(p); \
+    p=NULL;
 
 void *aya_calloc(size_t, size_t);
 char *aya_strncpy0(char *, const char *, size_t);
