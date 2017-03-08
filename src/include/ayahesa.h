@@ -25,8 +25,9 @@
 
 #include "assets.h"
 
-#define VERSION "Ayahesa/0.6.3"
-#define CONFIG  "conf/framework.ini"
+#define AYA_VERSION         "0.6.4"
+#define AYA_VERSION_STRING  "Ayahesa/" AYA_VERSION
+#define CONFIG              "conf/framework.ini"
 
 #ifdef DEBUG
 # define OPT_ROUTES

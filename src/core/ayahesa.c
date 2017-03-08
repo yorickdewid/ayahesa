@@ -45,7 +45,7 @@ aya_init(int state)
 {
     switch (state) {
         case KORE_MODULE_LOAD:
-            kore_log(LOG_NOTICE, "server core " VERSION);
+            kore_log(LOG_NOTICE, "server core " AYA_VERSION);
             kore_log(LOG_NOTICE, "running Kore/%d.%d.%d-%s",
                 KORE_VERSION_MAJOR,
                 KORE_VERSION_MINOR,
@@ -56,7 +56,7 @@ aya_init(int state)
             application_config(root_app, CONFIG);
             application_env(root_app);
             application_bootstrap(root_app);
-            http_server_version(VERSION);
+            http_server_version(AYA_VERSION_STRING);
             break;
         case KORE_MODULE_UNLOAD:
             kore_log(LOG_NOTICE, "unload ayahesa");

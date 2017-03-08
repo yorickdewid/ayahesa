@@ -1,0 +1,17 @@
+{
+    "version": "0.1.0",
+    "command": "kore",
+    "isShellCommand": true,
+    "showOutput": "always",
+    "tasks": [
+        {
+            "taskName": "clean",
+            "args": ["clean"]
+        },
+        {
+            "taskName": "build",
+            "isBuildCommand": true,
+            "args": ["build"]
+        }
+    ]
+}

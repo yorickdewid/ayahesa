@@ -121,13 +121,13 @@ http_basic_auth(struct http_request *request, const char *auth)
     }
 
     http_request_header(request, "authorization", &header_auth);
-    if (header_auth == NULL) {
+    if (!header_auth) {
         basic_auth_count++;
         return 0;
     }
     
     char *method = strtok(header_auth, " ");
-    if (method == NULL) {
+    if (!method) {
         basic_auth_count++;
         return 0;
     }

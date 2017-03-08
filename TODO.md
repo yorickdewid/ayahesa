@@ -1,8 +1,5 @@
 # TODO
 
-- alloc req data once & fre once
-
-
 This release:
 * Free `struct request_data`
 * Transparent file encryption
