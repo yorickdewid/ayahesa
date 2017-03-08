@@ -96,6 +96,7 @@ notfound(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
+    aya_free(session->session);
     aya_free(request->hdlr_extra);
 
     return_ok();
@@ -133,6 +134,7 @@ aya_shutdown_parent(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
+    aya_free(session->session);
     aya_free(request->hdlr_extra);
 
     kore_msg_send(KORE_MSG_PARENT, KORE_MSG_SHUTDOWN, "1", 1);
@@ -148,6 +150,7 @@ aya_fox(struct http_request *request)
     /* Release session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
     tree_free(session->session);
+    aya_free(session->session);
     aya_free(request->hdlr_extra);
 
     return_ok();

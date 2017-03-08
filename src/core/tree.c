@@ -65,11 +65,12 @@ tree_free(struct app_tree *node)
     unsigned int i; 
 
     /* Skip empty nodes */
-    if (node == NULL)
+    if (!node)
         return;
 
     if (node->key != NULL) {
         aya_free(node->key);
+        /* Space needed for macro */
     }
 
     switch (node->type) {
@@ -87,7 +88,7 @@ tree_free(struct app_tree *node)
     }
 
     /* Return when there is no subtree */
-    if (node->child.ptr == NULL)
+    if (!node->child.ptr)
         return;
 
     /* Traverse down */
@@ -98,7 +99,7 @@ tree_free(struct app_tree *node)
         }
     }
 
-    node->child.ptr = NULL;
+    aya_free(node->child.ptr);
 }
 
 /*
