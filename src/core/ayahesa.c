@@ -27,10 +27,6 @@ void            aya_disconnect(struct connection *);
 
 int             notfound(struct http_request *req);
 
-#if defined(STATUSPAGE)
-int     aya_status(struct http_request *);
-#endif // STATUSPAGE
-
 #if defined(OPT_ROUTES)
 int     aya_readme(struct http_request *);
 int     aya_shutdown_parent(struct http_request *);

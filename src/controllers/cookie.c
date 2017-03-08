@@ -23,7 +23,7 @@ controller(cookie)
         http_response_header(request, "set-cookie", "track=1");
 
     http_response_header(request, "content-type", "text/html");
-	http_response(request, 200, NULL, 0);
+    http_response(request, 200, NULL, 0);
 
     return_ok();
 }
