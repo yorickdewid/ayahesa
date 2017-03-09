@@ -25,5 +25,5 @@ script:
   - make && sudo make install
   - cd ..
   - kore -v
-  - kordev flavor test
-  - kordev build
+  - kodev flavor test
+  - kodev build

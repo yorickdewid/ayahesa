@@ -115,9 +115,11 @@ http_basic_auth(struct http_request *request, const char *auth)
     size_t      undecodelen;
     char        *header_auth = NULL;
 
-    if (basic_auth_count >= 5) {
-        sleep(3);
-        basic_auth_count = 0;
+    /* Bruteforce countermeasures */
+    if (basic_auth_count >= 20) {
+        sleep(5);
+    } else if (basic_auth_count >= 5) {
+        sleep(1);
     }
 
     http_request_header(request, "authorization", &header_auth);
@@ -136,11 +138,17 @@ http_basic_auth(struct http_request *request, const char *auth)
         char *code = strtok(NULL, " ");
 
         kore_base64_decode(code, (u_int8_t **)&undecode, &undecodelen);
-        if (undecodelen != strlen(auth))
+        if (undecodelen != strlen(auth)) {
+            basic_auth_count++;
+            aya_free(undecode);
             return 0;
+        }
 
-        if (!strncmp(undecode, auth, undecodelen))
+        if (!strncmp(undecode, auth, undecodelen)) {
+            basic_auth_count = 0;
+            aya_free(undecode);
             return 1;
+        }
     }
 
     basic_auth_count++;

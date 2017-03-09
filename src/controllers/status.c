@@ -73,7 +73,7 @@ controller(get_status)
 
     /* Setup session tree */
     struct request_data *session = (struct request_data *)request->hdlr_extra;
-    session->session = (app_t *)aya_malloc(sizeof(app_t));
+    session->session = (app_t *)aya_calloc(1, sizeof(app_t));
     session->session->type = T_NULL;
     session->session->flags = 0;
     session->session->key = NULL;
@@ -90,8 +90,9 @@ controller(get_status)
 
     /* Release session tree */
     tree_free(session->session);
+    aya_free(session->session);
+    aya_free(session->auth.principal);
     aya_free(request->hdlr_extra);
-    request->hdlr_extra = NULL;
 
     return_ok();
 }

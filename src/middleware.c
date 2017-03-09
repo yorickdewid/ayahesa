@@ -26,6 +26,7 @@ middleware(auth_basic)
     if (!request->hdlr_extra)
         request->hdlr_extra = aya_calloc(1, sizeof(struct request_data));
 
+    /* Basic authentication enabled */
     char *basic_auth_settings = app_basic_auth();
     if (!basic_auth_settings) {
         http_report(request, 404, "Not Found");
@@ -33,8 +34,8 @@ middleware(auth_basic)
         /* Release session tree */
         struct request_data *session = (struct request_data *)request->hdlr_extra;
         tree_free(session->session);
+        aya_free(session->session);
         aya_free(request->hdlr_extra);
-        request->hdlr_extra = NULL;
 
         return_error();
     }
@@ -47,8 +48,8 @@ middleware(auth_basic)
         /* Release session tree */
         struct request_data *session = (struct request_data *)request->hdlr_extra;
         tree_free(session->session);
+        aya_free(session->session);
         aya_free(request->hdlr_extra);
-        request->hdlr_extra = NULL;
 
         return_error();
     }

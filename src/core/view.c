@@ -173,7 +173,7 @@ process_template(struct kore_buf **buffer)
 
     /* Replace yield and swap buffers */
     aya_buf_replace_first_string(template_buffer, "@yield", begin, strlen(begin));
-    kore_buf_cleanup(*buffer);
+    kore_buf_free(*buffer);
     *buffer = template_buffer;
 }
 
@@ -443,6 +443,7 @@ http_view(struct http_request *request, int code, const char *view)
     http_response_header(request, "content-type", "text/html");
     http_response(request, code, str, length);
 
-    kore_buf_cleanup(buffer);
+    kore_buf_free(buffer);
     return_ok();
 }
+
