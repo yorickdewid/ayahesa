@@ -1,6 +1,7 @@
 *.o
 .flavor
 .objs
+*.pid
 ayahesa.so
 assets.h
 cert
