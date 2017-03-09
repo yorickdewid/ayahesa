@@ -18,6 +18,7 @@ addons:
 
 before_script:
   - git clone https://github.com/jorisvink/kore
+  - export C_INCLUDE_PATH=$C_INCLUDE_PATH:`pg_config --includedir`
 
 script:
   - cd kore
