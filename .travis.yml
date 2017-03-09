@@ -25,6 +25,6 @@ script:
   - sed -i '1s/^/JSONRPC=1\nNOTLS=1\nTASKS=1\nPGSQL=1\nDEBUG=1\n/' Makefile
   - make && sudo make install
   - cd ..
-  - kore -v
+  - kore -v && kodev info
   - kodev flavor test
   - kodev build
